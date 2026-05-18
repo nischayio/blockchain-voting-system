@@ -1,3 +1,4 @@
+// password strength validation
 export const validatePassword = (
   password
 ) => {

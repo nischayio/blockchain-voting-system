@@ -27,6 +27,7 @@ const AdminLogin = () => {
     }
   }, [navigate]);
 
+  // login form handling
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -34,6 +35,7 @@ const AdminLogin = () => {
     }));
   };
 
+  // login form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -64,6 +66,7 @@ const AdminLogin = () => {
       >
         <h1 className="text-3xl font-bold mb-8 text-center">Admin Login</h1>
 
+        {/* Email input */}
         <div className="space-y-4">
           <input
             type="email"
@@ -74,7 +77,7 @@ const AdminLogin = () => {
             className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 outline-none"
           />
 
-          {/* Password Input */}
+          {/* Password input */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -85,6 +88,7 @@ const AdminLogin = () => {
               className="w-full p-4 pr-14 rounded-2xl bg-white/5 border border-white/10 outline-none"
             />
 
+            {/* Password visibility toggle */}
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
@@ -98,6 +102,7 @@ const AdminLogin = () => {
             </button>
           </div>
 
+          {/* Login button */}
           <button
             disabled={loading}
             className="w-full py-4 rounded-2xl bg-white text-black font-semibold disabled:opacity-50"

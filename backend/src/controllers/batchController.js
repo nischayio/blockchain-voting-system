@@ -2,7 +2,7 @@ import Batch from "../models/Batch.js";
 
 export const getBatches = async (req, res) => {
   try {
-    // page & limit
+    // pages & limit
     const page = Number(req.query.page) || 1;
 
     const limit = Number(req.query.limit) || 10;

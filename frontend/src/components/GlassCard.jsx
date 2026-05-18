@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from "framer-motion";
 
+// glasscard component
 const GlassCard = ({ children, className = "", ...props }) => {
   return (
     <motion.div

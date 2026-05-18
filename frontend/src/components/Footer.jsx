@@ -28,7 +28,7 @@ const Footer = () => {
 
       <div className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid gap-10 md:grid-cols-3">
-          {/* Brand */}
+          {/* Title */}
           <div>
             <div
               onClick={() => navigate("/")}
@@ -76,7 +76,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Contact / Security */}
+          {/* Extra info */}
           <div>
             <h3 className="mb-5 text-sm font-semibold uppercase tracking-[0.15em] text-slate-300">
               Security

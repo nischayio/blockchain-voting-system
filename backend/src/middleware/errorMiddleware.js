@@ -23,7 +23,7 @@ const errorMiddleware = (
     });
   }
 
-  // validation errors
+  // validate errors
   if (err.name === "ValidationError") {
     return res.status(400).json({
       success: false,

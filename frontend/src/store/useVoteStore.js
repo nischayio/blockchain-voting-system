@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+// vote persistance
 export const useVoteStore = create((set) => ({
   wallet: null,
   voteHash: "",

@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import GlassCard from "./GlassCard";
 
+// candidate glass card
 const CandidateCard = ({ name, onVote }) => {
   return (
     <GlassCard className="p-6 flex flex-col items-center">

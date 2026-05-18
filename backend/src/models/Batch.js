@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// VOTES BATCH MODEL
 const batchSchema = new mongoose.Schema(
   {
     batchId: {

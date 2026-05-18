@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// ADMIN MODEL
 const adminSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: {

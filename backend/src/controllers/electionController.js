@@ -1,6 +1,7 @@
 import Election from "../models/Election.js";
 import Vote from "../models/Vote.js";
 
+// CREATE ELECTION
 export const createElection = async (req, res) => {
   try {
     const { title, description, candidates, startTime, endTime } = req.body;
@@ -56,7 +57,7 @@ export const createElection = async (req, res) => {
       });
     }
 
-    // determine initial status
+    // check initial status
     const now = new Date();
 
     let status = "upcoming";
@@ -98,6 +99,7 @@ export const createElection = async (req, res) => {
   }
 };
 
+// GET ALL ELECTIONS
 export const getAllElections = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -161,10 +163,12 @@ export const getAllElections = async (req, res) => {
   }
 };
 
+// GET ELECTIONS BY ID
 export const getElectionById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -208,12 +212,14 @@ export const getElectionById = async (req, res) => {
   }
 };
 
+// UPDATE ELECTION
 export const updateElection = async (req, res) => {
   try {
     const { id } = req.params;
 
     const { title, description, candidates, startTime, endTime } = req.body;
 
+    // find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -330,10 +336,12 @@ export const updateElection = async (req, res) => {
   }
 };
 
+// DELETE ELECTION
 export const deleteElection = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -343,7 +351,7 @@ export const deleteElection = async (req, res) => {
       });
     }
 
-    // prevent deleting active
+    // active election delete prevention
     if (election.status === "active") {
       return res.status(400).json({
         success: false,
@@ -363,6 +371,7 @@ export const deleteElection = async (req, res) => {
       });
     }
 
+    // delete election
     await Election.findByIdAndDelete(id);
 
     return res.status(200).json({
@@ -379,6 +388,7 @@ export const deleteElection = async (req, res) => {
   }
 };
 
+// ADD CANDIDATE
 export const addCandidate = async (req, res) => {
   try {
     const { id } = req.params;
@@ -442,10 +452,12 @@ export const addCandidate = async (req, res) => {
   }
 };
 
+// REMOVE CANDIDATE
 export const removeCandidate = async (req, res) => {
   try {
     const { id, candidateName } = req.params;
 
+    // find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -494,10 +506,12 @@ export const removeCandidate = async (req, res) => {
   }
 };
 
+// GET ELECTION RESULTS
 export const getElectionResults = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -558,11 +572,11 @@ export const getElectionResults = async (req, res) => {
         ...results.map((result) => result.votes),
       );
 
+      // candidates tie check
       const topCandidates = results.filter(
         (result) => result.votes === highestVoteCount,
       );
-
-      // clear winner only if exactly one top candidate
+      
       if (topCandidates.length === 1) {
         winner = topCandidates[0];
       } else {
@@ -599,10 +613,12 @@ export const getElectionResults = async (req, res) => {
   }
 };
 
+// GET ACTIVE ELECTIONS
 export const getActiveElection = async (req, res) => {
   try {
     const now = new Date();
 
+    // finding active elections
     const election = await Election.findOne({
       startTime: {
         $lte: now,
@@ -643,6 +659,7 @@ export const getActiveElection = async (req, res) => {
   }
 };
 
+// GET PUBLIC ELECTIONS
 export const getPublicElections = async (req, res) => {
   try {
     const elections = await Election.find().sort({

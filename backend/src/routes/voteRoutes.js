@@ -5,6 +5,7 @@ import { voteLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
+// public votes
 router.post("/submit", protect, voteLimiter, submitVote);
 router.get("/my-votes", protect, getMyVotes);
 

@@ -8,6 +8,7 @@ const ElectionsPage = () => {
 
   const [loading, setLoading] = useState(true);
 
+  // fetch elections
   useEffect(() => {
     const fetchElections = async () => {
       try {
@@ -59,6 +60,7 @@ const ElectionsPage = () => {
         <p className="text-slate-400 mt-2">Participate in active elections</p>
       </div>
 
+      {/* render elections */}
       {elections.length === 0 ? (
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
           No elections available
@@ -97,7 +99,7 @@ const ElectionsPage = () => {
               <p className="text-slate-500 text-sm">
                 Ends: {formatToIST(election.endTime)}
               </p>
-
+              {/* elections buttons */}
               <div className="mt-6">
                 {election.status === "upcoming" ? (
                   <button

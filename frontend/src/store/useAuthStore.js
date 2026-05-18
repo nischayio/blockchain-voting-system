@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+// auth persistance
 export const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem("user")) || null,
   token: localStorage.getItem("token") || null,

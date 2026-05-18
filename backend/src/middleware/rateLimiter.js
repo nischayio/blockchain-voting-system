@@ -1,5 +1,6 @@
 import rateLimit from "express-rate-limit";
 
+// AUTHORIZATION RATE LIMITING
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -10,6 +11,7 @@ export const authLimiter = rateLimit({
   },
 });
 
+// VOTING RATE LIMITING
 export const voteLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   max: 10,

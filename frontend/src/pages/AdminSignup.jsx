@@ -33,6 +33,7 @@ const AdminSignup = () => {
     }
   }, [navigate]);
 
+  // signup form handling
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -40,6 +41,7 @@ const AdminSignup = () => {
     }));
   };
 
+  // submit button
   const handleSubmit = async (e) => {
     e.preventDefault();
 

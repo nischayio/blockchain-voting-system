@@ -18,15 +18,12 @@ if (!process.env.CONTRACT_ADDRESS) {
 }
 
 // Provider
-
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
 
 // Wallet
-
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 // Contract
-
 const contractAddress = process.env.CONTRACT_ADDRESS;
 
 const ABI = [
@@ -36,7 +33,6 @@ const ABI = [
 const contract = new ethers.Contract(contractAddress, ABI, wallet);
 
 // Store on Chain
-
 export const storeOnChain = async (batchId, root) => {
   try {
     if (!batchId || !root) {
@@ -47,7 +43,7 @@ export const storeOnChain = async (batchId, root) => {
     console.log("Batch ID:", batchId);
     console.log("Merkle Root:", root);
 
-    // ensuring proper bytes32 formatting
+    // ensuring bytes32 formatting
     const formattedRoot = root.startsWith("0x") ? root : `0x${root}`;
 
     // send transaction
@@ -61,7 +57,7 @@ export const storeOnChain = async (batchId, root) => {
     console.log("Blockchain confirmation successful");
     console.log("Block Number:", receipt.blockNumber);
 
-    // return tx + receipt metadata
+    // return tx and receipt metadata
     return {
       hash: tx.hash,
       blockNumber: receipt.blockNumber,
@@ -72,7 +68,7 @@ export const storeOnChain = async (batchId, root) => {
     console.error("BLOCKCHAIN ERROR:");
     console.error(error);
 
-    // rethrowing so batchService can handle failure state
+    
     throw error;
   }
 };

@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router";
 
+// admin route
 const AdminRoute = ({ children }) => {
   const token = localStorage.getItem("token");
 

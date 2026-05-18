@@ -4,6 +4,7 @@ import CryptoJS from "crypto-js";
 
 const hash = (data) => CryptoJS.SHA256(data).toString();
 
+// generate vote proof
 export const generateProof = async (voteHash) => {
   const vote = await Vote.findOne({ voteHash });
 

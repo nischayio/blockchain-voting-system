@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// VOTE MODEL
 const voteSchema = new mongoose.Schema(
   {
     voteHash: {

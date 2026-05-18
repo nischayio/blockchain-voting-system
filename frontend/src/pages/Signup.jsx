@@ -30,6 +30,7 @@ const Signup = () => {
     setToastConfig({ message, type });
   };
 
+  // form handling
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -37,6 +38,7 @@ const Signup = () => {
     });
   };
 
+  // submit button
   const handleSubmit = async (e) => {
     e.preventDefault();
 

@@ -17,20 +17,20 @@ import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/* ---------- PUBLIC ---------- */
+// PUBLIC
 
-// active election
+// active electionS
 router.get("/active/current", getActiveElection);
 
 // election results
 router.get("/:id/results", getElectionResults);
 
-/* ---------- ADMIN ---------- */
+// ADMIN
 
-// create
+// create election
 router.post("/", protect, adminOnly, createElection);
 
-// get all
+// get all elections
 router.get("/admin/all", protect, adminOnly, getAllElections);
 
 // add candidate
@@ -44,13 +44,13 @@ router.delete(
   removeCandidate,
 );
 
-// update
+// update election
 router.put("/:id", protect, adminOnly, updateElection);
 
-// delete
+// delete election
 router.delete("/:id", protect, adminOnly, deleteElection);
 
-/* ---------- DYNAMIC LAST ---------- */
+
 
 // election
 router.get("/", getPublicElections);

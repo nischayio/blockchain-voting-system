@@ -62,7 +62,7 @@ const ResultsPage = () => {
         <p className="text-slate-400 mt-2">Election Results</p>
       </div>
 
-      {/* Winner Card */}
+      {/* Winner card */}
       <div className="rounded-[32px] border border-emerald-500/20 bg-emerald-500/10 p-8 text-center mb-10">
         <h2 className="text-xl text-slate-300">Winner</h2>
 
@@ -73,7 +73,7 @@ const ResultsPage = () => {
         <p className="text-slate-400 mt-4">Total Votes: {result.totalVotes}</p>
       </div>
 
-      {/* Results */}
+      {/* Results section*/}
       <div className="space-y-5">
         {result.results.map((candidate) => (
           <div

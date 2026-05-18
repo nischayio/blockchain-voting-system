@@ -4,6 +4,7 @@ import Vote from "../models/Vote.js";
 import User from "../models/User.js";
 import Election from "../models/Election.js";
 
+// SUBMIT VOTE
 export const submitVote = async (req, res) => {
   try {
     const {
@@ -16,7 +17,7 @@ export const submitVote = async (req, res) => {
       timestamp,
     } = req.body;
 
-    // authenticated user from JWT middleware
+    // authenticated user JWT
     const userId = req.user.id;
 
     // validate fields
@@ -48,7 +49,7 @@ export const submitVote = async (req, res) => {
       });
     }
 
-    // Wallet Validation
+    // wallet Validation
     if (!user.walletAddress) {
       return res.status(401).json({
         success: false,
@@ -64,7 +65,7 @@ export const submitVote = async (req, res) => {
       });
     }
 
-    // Election Validation
+    // election Validation
     const election = await Election.findById(electionId);
 
     if (!election) {
@@ -100,8 +101,7 @@ export const submitVote = async (req, res) => {
       });
     }
 
-    // Signature Freshness check
-
+    // signature Freshness check
     const currentTimestamp = Date.now();
 
     const FIVE_MINUTES = 5 * 60 * 1000;
@@ -113,8 +113,7 @@ export const submitVote = async (req, res) => {
       });
     }
 
-    // Signature Verification
-
+    // signature Verification
     const message = `
 Blockchain Voting System
 
@@ -160,7 +159,6 @@ Timestamp: ${timestamp}
     }
 
     // Create Vote
-
     try {
       const vote = await Vote.create({
         electionId,
@@ -203,6 +201,7 @@ Timestamp: ${timestamp}
   }
 };
 
+// GET USER VOTES
 export const getMyVotes = async (req, res) => {
   try {
     // page & limit from query

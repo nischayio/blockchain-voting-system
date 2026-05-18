@@ -6,7 +6,7 @@ export const verifyVote = async (req, res) => {
   try {
     const { voteHash } = req.params;
 
-    // Find vote
+    // find vote
     const vote = await Vote.findOne({ voteHash });
 
     if (!vote) {
@@ -16,7 +16,7 @@ export const verifyVote = async (req, res) => {
       });
     }
 
-    // Vote still pending
+    // vote batching status check === pending
     if (vote.status === "pending") {
       return res.json({
         success: true,
@@ -27,7 +27,7 @@ export const verifyVote = async (req, res) => {
       });
     }
 
-    // Vote processing
+    // vote batching status check === processing
     if (vote.status === "processing") {
       return res.json({
         success: true,
@@ -38,7 +38,7 @@ export const verifyVote = async (req, res) => {
       });
     }
 
-    // Failed batch
+    // vote batching status check === failed
     if (vote.status === "failed") {
       return res.json({
         success: true,
@@ -49,7 +49,7 @@ export const verifyVote = async (req, res) => {
       });
     }
 
-    // Find batch
+    // find batch
     const batch = await Batch.findOne({
       batchId: vote.batchId,
     });
@@ -61,10 +61,10 @@ export const verifyVote = async (req, res) => {
       });
     }
 
-    // Generate Merkle proof
+    // generate Merkle proof
     const proof = await generateProof(vote.voteHash);
 
-    // Verified response
+    // vote batching verified response
     return res.json({
       success: true,
       data: {

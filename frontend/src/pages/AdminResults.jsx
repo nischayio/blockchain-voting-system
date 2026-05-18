@@ -13,6 +13,7 @@ const AdminResults = () => {
 
   const [error, setError] = useState("");
 
+  // fetch results
   useEffect(() => {
     const fetchResults = async () => {
       try {
@@ -53,7 +54,7 @@ const AdminResults = () => {
         <p className="text-slate-400 mt-2">{result.title}</p>
       </div>
 
-      {/* Summary Cards */}
+      {/* Result Section */}
       <div className="grid grid-cols-3 gap-5 mb-10">
         <div className="rounded-3xl bg-white/5 border border-white/10 p-6">
           <p className="text-slate-400">Winner</p>

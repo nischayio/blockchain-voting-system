@@ -16,10 +16,8 @@ const HomeLoader = () => {
       {/* Loader Content */}
       <div className="relative z-10 flex flex-col items-center">
         <div className="relative w-20 h-20">
-          {/* Outer ring */}
           <div className="absolute inset-0 rounded-full border border-white/10" />
 
-          {/* Animated ring */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{
@@ -30,7 +28,7 @@ const HomeLoader = () => {
             className="absolute inset-0 rounded-full border-t-2 border-purple-400 border-r-2 border-r-blue-400"
           />
 
-          {/* Center */}
+          {/* Center Icons */}
           <div className="absolute inset-4 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-xl flex items-center justify-center">
             <span className="text-lg font-bold text-white">
               <ShieldCheck className="w-7 h-7 text-slate-300" />

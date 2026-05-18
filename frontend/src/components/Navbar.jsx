@@ -52,12 +52,12 @@ const Navbar = () => {
           },
         ];
 
+  // logout
   const handleLogout = () => {
     const currentRole = localStorage.getItem("role");
 
     logout();
 
-    // reset vote store
     setWallet(null);
     setVoteState("idle");
     setVoteHashOnly("");
@@ -73,7 +73,7 @@ const Navbar = () => {
     <div className="fixed top-0 left-0 w-full z-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 shadow-lg">
-          {/* LOGO */}
+          {/* Logo */}
           <div
             onClick={() => navigate("/")}
             className="flex items-center gap-2 cursor-pointer"
@@ -85,7 +85,7 @@ const Navbar = () => {
             <span className="font-semibold text-white">NexusVote</span>
           </div>
 
-          {/* NAV LINKS */}
+          {/* Nav Links */}
           <div className="hidden md:flex items-center gap-6">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -123,7 +123,7 @@ const Navbar = () => {
               );
             })}
 
-            {/* AUTH SECTION */}
+            {/* Login Section */}
             {!isAuthenticated && role !== "admin" ? (
               <div className="flex items-center gap-3">
                 <button

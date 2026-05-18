@@ -6,6 +6,7 @@ import ScrollToTop from "./ScrollToTop";
 import SmoothScroll from "./SmoothScroll";
 import Footer from "./Footer";
 
+// Main Layout
 const Layout = () => {
   const location = useLocation();
 

@@ -3,9 +3,10 @@ import Batch from "../models/Batch.js";
 import { buildMerkleTree } from "../utils/merkle.js";
 import { storeOnChain } from "./blockchainService.js";
 
+// CREATE BATCH
 export const processBatch = async () => {
   try {
-    // Get only pending votes
+    // get only pending votes
     const votes = await Vote.find({
       status: "pending",
       batchId: null,
@@ -16,7 +17,7 @@ export const processBatch = async () => {
       return;
     }
 
-    // Lock votes temporarily
+    // lock votes temporarily
     await Vote.updateMany(
       {
         _id: { $in: votes.map((v) => v._id) },
@@ -26,13 +27,13 @@ export const processBatch = async () => {
       },
     );
 
-    // Generate merkle tree
+    // generate merkle tree
     const { root } = buildMerkleTree(votes);
 
-    // Generate batch ID
+    // generate batch ID
     const batchId = `batch-${Date.now()}`;
 
-    // Create batch record
+    // create batch record
     const batch = await Batch.create({
       batchId,
       merkleRoot: root,
@@ -43,19 +44,19 @@ export const processBatch = async () => {
     let transactionHash = null;
 
     try {
-      // Store on blockchain
+      // store on blockchain
       const tx = await storeOnChain(batchId, root);
 
       // if blockchain service returns tx hash
       transactionHash = tx?.hash || null;
 
-      // Update batch as confirmed
+      // update batch as confirmed
       batch.status = "confirmed";
       batch.transactionHash = transactionHash;
 
       await batch.save();
 
-      // Update votes
+      // update votes
       await Vote.updateMany(
         {
           _id: { $in: votes.map((v) => v._id) },

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// ELECTION MODEL
 const electionSchema = new mongoose.Schema(
   {
     title: {

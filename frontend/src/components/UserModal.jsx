@@ -50,7 +50,6 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
 
   const [toast, setToast] = useState(null);
 
-  // reset modal state
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
@@ -70,7 +69,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
     }
   }, [open]);
 
-  // ESC handling
+  // Esc button support
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key !== "Escape") return;
@@ -121,11 +120,13 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
     });
   };
 
+  // logout button
   const handleLogout = () => {
     logout();
     onClose();
   };
 
+  // password change
   const handlePasswordChange = async () => {
     const { currentPassword, newPassword, confirmPassword } = form;
 
@@ -179,6 +180,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
 
   return (
     <>
+      {/* Toast */}
       <AnimatePresence>
         {toast && (
           <Toast
@@ -189,6 +191,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
         )}
       </AnimatePresence>
 
+      {/* User Modal */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -227,7 +230,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
               }}
               className="flex w-[200%]"
             >
-              {/* PROFILE */}
+              {/* Profile */}
               <div className="w-1/2 p-6">
                 <div className="flex flex-col items-center pb-5">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.03]">
@@ -282,7 +285,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                 </div>
               </div>
 
-              {/* PASSWORD */}
+              {/* Password */}
               <div className="w-1/2 p-6">
                 <button
                   onClick={() => setView("profile")}
@@ -339,7 +342,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                     toggle={() => setShowConfirm(!showConfirm)}
                   />
 
-                  {/* toggle */}
+                  {/* Login state toggler */}
                   <button
                     onClick={() => setStayLoggedIn(!stayLoggedIn)}
                     className="flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3 transition hover:bg-white/[0.05]"

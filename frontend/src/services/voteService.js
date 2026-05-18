@@ -1,5 +1,6 @@
 import API from "./api";
 
+// vote submit
 export const submitVote = async ({
   electionId,
   candidate,
@@ -22,6 +23,7 @@ export const submitVote = async ({
   return res.data;
 };
 
+// get votes
 export const getMyVotes = async (page = 1, limit = 10) => {
   const res = await API.get(`/v1/votes/my-votes?page=${page}&limit=${limit}`);
 

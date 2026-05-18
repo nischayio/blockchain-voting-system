@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
+import API from "../services/api";
 
 const BatchPage = () => {
   const [batches, setBatches] = useState([]);
@@ -16,9 +17,7 @@ const BatchPage = () => {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/api/v1/batches?page=${page}&limit=${limit}`,
-        );
+        const res = await API.get(`/v1/batches?page=${page}&limit=${limit}`);
 
         setBatches(res.data.data || []);
 
@@ -82,27 +81,29 @@ const BatchPage = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-4 mt-16 pb-10 pt-8">
-        <button
-          disabled={!pagination?.hasPrevPage}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-4 py-2 rounded-xl bg-white/10 disabled:opacity-40"
-        >
-          Previous
-        </button>
+      {batches.length > 0 && (
+        <div className="flex justify-center gap-4 mt-16 pb-10 pt-8">
+          <button
+            disabled={!pagination?.hasPrevPage}
+            onClick={() => setPage((p) => p - 1)}
+            className="px-4 py-2 rounded-xl bg-white/10 disabled:opacity-40"
+          >
+            Previous
+          </button>
 
-        <span className="text-slate-400 flex items-center">
-          Page {pagination?.page || 1}
-        </span>
+          <span className="text-slate-400 flex items-center">
+            Page {pagination?.page || 1}
+          </span>
 
-        <button
-          disabled={!pagination?.hasNextPage}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-4 py-2 rounded-xl bg-white/10 disabled:opacity-40"
-        >
-          Next
-        </button>
-      </div>
+          <button
+            disabled={!pagination?.hasNextPage}
+            onClick={() => setPage((p) => p + 1)}
+            className="px-4 py-2 rounded-xl bg-white/10 disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

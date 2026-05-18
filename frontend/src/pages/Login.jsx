@@ -25,8 +25,6 @@ const Login = () => {
     setToastConfig({ message, type });
   };
 
-  // SHOW TOAST IF USER CLICKS ELECTIONS
-  // WHILE ALREADY ON LOGIN PAGE
   useEffect(() => {
     const handleLoginToast = (e) => {
       showToast(e.detail.message, e.detail.type);
@@ -39,6 +37,7 @@ const Login = () => {
     };
   }, []);
 
+  // login form handling
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -46,6 +45,7 @@ const Login = () => {
     });
   };
 
+  // submit button
   const handleSubmit = async (e) => {
     e.preventDefault();
 

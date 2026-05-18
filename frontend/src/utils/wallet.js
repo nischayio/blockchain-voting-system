@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 
+// connect wallet
 export const connectWallet = async () => {
   if (!window.ethereum) {
     alert("MetaMask not installed!");
@@ -17,6 +18,7 @@ export const connectWallet = async () => {
   return address;
 };
 
+// transaction signature
 export const signMessage = async (message) => {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
 

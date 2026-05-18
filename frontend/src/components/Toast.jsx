@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertCircle, CheckCircle2, Shield, ShieldCheck } from "lucide-react";
 
+// Custom Toast
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);

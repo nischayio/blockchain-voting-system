@@ -99,7 +99,7 @@ const VotePage = () => {
     }
   }, [electionId]);
 
-  // Fetch election dynamically
+  // Fetch election
   useEffect(() => {
     const fetchElection = async () => {
       try {
@@ -174,7 +174,7 @@ const VotePage = () => {
     }
   };
 
-  // Vote
+  // Vote handling
   const handleVote = async (candidateName) => {
     if (!wallet) {
       showToast("Connect wallet first", "error");
@@ -237,7 +237,7 @@ Timestamp: ${timestamp}
     }
   };
 
-  // Verify
+  // Verify vote
   const handleVerify = async () => {
     if (!voteHash) return;
 
@@ -276,6 +276,55 @@ Timestamp: ${timestamp}
       showToast("Verification failed", "error");
     }
   };
+
+  // auto verify voting
+  useEffect(() => {
+    if (!voteHash || voteState !== "pending") {
+      return;
+    }
+
+    let interval;
+
+    const pollVerification = async () => {
+      try {
+        const res = await verifyVote(voteHash);
+
+        // batching
+        if (res.status === "pending" || res.status === "processing") {
+          return;
+        }
+
+        // batch failed
+        if (res.status === "failed") {
+          setVoteState("failed");
+
+          showToast("Batch processing failed", "error");
+
+          clearInterval(interval);
+
+          return;
+        }
+
+        // verified
+        setVerifyResult(res);
+
+        setVerified();
+
+        showToast("Vote verified on blockchain!", "success");
+
+        clearInterval(interval);
+      } catch (error) {
+        console.error("Auto verification error:", error);
+      }
+    };
+
+    // poll
+    pollVerification();
+
+    interval = setInterval(pollVerification, 5000);
+
+    return () => clearInterval(interval);
+  }, [voteHash, voteState]);
 
   const copyHash = () => {
     if (!voteHash) return;

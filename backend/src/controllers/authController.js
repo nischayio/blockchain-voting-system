@@ -318,7 +318,7 @@ export const validateWallet = async (req, res) => {
       });
     }
 
-    // prevent changing linked wallet
+    // linked wallet change prevention
     if (user.walletAddress && user.walletAddress !== normalizedWallet) {
       return res.status(401).json({
         success: false,
@@ -326,7 +326,7 @@ export const validateWallet = async (req, res) => {
       });
     }
 
-    // prevent duplicate wallet usage
+    // duplicate wallet usage prevention
     const existingWalletUser = await User.findOne({
       walletAddress: normalizedWallet,
       _id: { $ne: userId },
@@ -339,8 +339,7 @@ export const validateWallet = async (req, res) => {
       });
     }
 
-    // Signature Verification
-
+    // signature Verification
     const message = `Link wallet to voting account: ${userId}`;
 
     const recoveredAddress = ethers.utils.verifyMessage(message, signature);

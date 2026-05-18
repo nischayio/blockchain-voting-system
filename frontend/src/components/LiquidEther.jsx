@@ -1,6 +1,7 @@
 import { useEffect, useRef, memo } from 'react';
 import * as THREE from 'three';
 
+// Stock reusable component
 const LiquidEther = ({
   mouseForce = 20,
   cursorSize = 100,

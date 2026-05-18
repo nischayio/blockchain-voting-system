@@ -19,7 +19,12 @@ await connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Vote routes
@@ -30,10 +35,10 @@ app.use("/api/v1/batches", batchRoutes);
 // Election routes
 app.use("/api/v1/elections", electionRoutes);
 
-// auth routes
+// Auth routes
 app.use("/api/auth", authRoutes);
 
-// temporary - runs processBatch() every 30 seconds
+// checking batchProcess every 10 seconds
 setInterval(() => {
   processBatch();
 }, 10000);

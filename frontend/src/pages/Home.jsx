@@ -7,7 +7,6 @@ import {
   Layers,
   Link as LinkIcon,
   ArrowRight,
-  Image as ImageIcon,
   ChevronRight,
   Wallet,
   Shield,
@@ -19,51 +18,40 @@ import {
 import HomeLoader from "../components/HomeLoader";
 import LiquidEther from "../components/LiquidEther";
 
-// --- DATA ---
+// SECTIONS DATA
 const sections = [
   {
     title: "Secure Voting System",
     desc: "Every vote is cryptographically signed and verified, ensuring complete authenticity and tamper-proof integrity.",
     icon: ShieldCheck,
+    image: "/illustrations/ShieldCheck.svg",
+    alt: "Secure voting illustration",
   },
+
   {
     title: "Transparent & Verifiable",
     desc: "Merkle proofs allow every user to independently verify their vote inclusion without trusting the backend.",
     icon: Fingerprint,
+    image: "/illustrations/FingerprintPattern.svg",
+    alt: "Transparent verification illustration",
   },
+
   {
     title: "Scalable Architecture",
     desc: "Batch processing and Layer-2 concepts ensure the system scales efficiently without compromising security.",
     icon: Layers,
+    image: "/illustrations/Layers.svg",
+    alt: "Scalable architecture illustration",
   },
+
   {
     title: "Blockchain Anchoring",
     desc: "Final vote batches are anchored on-chain, creating a permanent and immutable audit trail.",
     icon: LinkIcon,
+    image: "/illustrations/Link.svg",
+    alt: "Blockchain anchoring illustration",
   },
 ];
-
-const logos = ["Meta", "Google", "Airbnb", "Stripe", "Amazon"];
-
-// --- COMPONENTS ---
-
-const IllustrationPlaceholder = ({ Icon }) => (
-  <div className="w-full aspect-square md:aspect-[4/3] rounded-2xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/10 flex flex-col items-center justify-center text-slate-500 relative overflow-hidden shadow-2xl group hover:border-white/20 transition-colors duration-500">
-    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors duration-500" />
-    <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 group-hover:bg-white/10 transition-colors duration-500" />
-
-    <Icon
-      className="w-16 h-16 mb-4 opacity-50 group-hover:opacity-80 transition-opacity duration-500 group-hover:scale-110 transform"
-      strokeWidth={1}
-    />
-    <span className="text-sm font-medium tracking-widest uppercase opacity-70">
-      Illustration Space
-    </span>
-    <span className="text-xs mt-2 opacity-40">Replace with your image</span>
-  </div>
-);
-
-// --- MAIN HOMEPAGE ---
 
 const Home = () => {
   const navigate = useNavigate();
@@ -71,6 +59,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [showLiquidEther, setShowLiquidEther] = useState(false);
 
+  // Loading screen timeout
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -79,6 +68,7 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Liquid ether load delay
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowLiquidEther(true);
@@ -98,6 +88,7 @@ const Home = () => {
     navigate("/elections");
   };
 
+  // Home loading animation
   if (loading) {
     return <HomeLoader />;
   }
@@ -111,29 +102,26 @@ const Home = () => {
           {showLiquidEther && (
             <LiquidEther
               colors={["#5227FF", "#FF9FFC", "#B497CF"]}
-              mouseForce={12}
-              cursorSize={80}
+              mouseForce={14}
+              cursorSize={85}
               isViscous
-              viscous={24}
-              iterationsViscous={24}
-              iterationsPoisson={24}
-              resolution={0.4}
+              viscous={26}
+              iterationsViscous={26}
+              iterationsPoisson={26}
+              resolution={0.45}
               isBounce={false}
               autoDemo
-              autoSpeed={0.22}
+              autoSpeed={0.4}
               autoIntensity={1.8}
-              takeoverDuration={0.2}
-              autoResumeDelay={4000}
-              autoRampDuration={0.45}
+              takeoverDuration={0.22}
+              autoResumeDelay={2500}
+              autoRampDuration={0.5}
               color0="#5227FF"
               color1="#FF9FFC"
               color2="#B497CF"
             />
           )}
         </div>
-
-        {/* Dark Overlay */}
-        {/* <div className="absolute inset-0 z-10 bg-slate-950/65 backdrop-blur-[1px]" /> */}
         <motion.div
           initial={{
             opacity: 0,
@@ -287,7 +275,17 @@ const Home = () => {
                   transition={{ duration: 0.7, delay: 0.2 }}
                   className="flex-1 w-full"
                 >
-                  <IllustrationPlaceholder Icon={ImageIcon} />
+                  <div className="relative w-full flex items-center justify-center">
+                    <img
+                      src={sec.image}
+                      alt={sec.alt}
+                      draggable={false}
+                      className="w-full max-w-[200px] object-contain select-none pointer-events-none rounded-[2rem] transition-transform duration-500 hover:scale-[1.02] mt-10"
+                    />
+
+                    {/* subtle glow */}
+                    <div className="absolute inset-0 bg-blue-500/5 blur-[100px] -z-10" />
+                  </div>
                 </motion.div>
               </div>
             </section>
@@ -297,7 +295,6 @@ const Home = () => {
 
       {/* CTA */}
       <section className="relative py-32 px-6 overflow-hidden">
-
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}

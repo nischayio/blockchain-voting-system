@@ -1,5 +1,6 @@
 import CryptoJS from "crypto-js";
 
+// cryptographic vote hash
 export const generateVoteHash = (candidate, walletAddress) => {
   const nonce = Date.now().toString();
 
