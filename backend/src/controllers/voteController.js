@@ -149,9 +149,21 @@ Timestamp: ${timestamp}
     }
 
     // duplicate vote hash check
-    const existingVote = await Vote.findOne({ voteHash });
+    const existingVote = await Vote.findOne({
+      userId: req.user.id,
+      electionId,
+    });
 
     if (existingVote) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already voted in this election",
+      });
+    }
+
+    const duplicateHash = await Vote.findOne({ voteHash });
+
+    if (duplicateHash) {
       return res.status(400).json({
         success: false,
         message: "Duplicate vote detected",
