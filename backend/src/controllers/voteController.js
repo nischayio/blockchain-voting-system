@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import Vote from "../models/Vote.js";
 import User from "../models/User.js";
 import Election from "../models/Election.js";
+import { triggerBatching } from "../services/batchService.js";
 
 // SUBMIT VOTE
 export const submitVote = async (req, res) => {
@@ -181,6 +182,8 @@ Timestamp: ${timestamp}
         walletAddress: normalizedWallet,
         status: "pending",
       });
+
+      triggerBatching();
 
       return res.status(201).json({
         success: true,

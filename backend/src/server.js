@@ -11,7 +11,6 @@ import authRoutes from "./routes/authRoutes.js";
 import electionRoutes from "./routes/electionRoutes.js";
 
 // services imports
-import { processBatch } from "./services/batchService.js";
 
 dotenv.config();
 
@@ -37,11 +36,6 @@ app.use("/api/v1/elections", electionRoutes);
 
 // Auth routes
 app.use("/api/auth", authRoutes);
-
-// checking batchProcess every 10 seconds
-setInterval(() => {
-  processBatch();
-}, 10000);
 
 const PORT = process.env.PORT || 5000;
 

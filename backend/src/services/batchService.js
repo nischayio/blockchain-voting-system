@@ -3,6 +3,8 @@ import Batch from "../models/Batch.js";
 import { buildMerkleTree } from "../utils/merkle.js";
 import { storeOnChain } from "./blockchainService.js";
 
+let batchTimer = null;
+
 // CREATE BATCH
 export const processBatch = async () => {
   try {
@@ -92,4 +94,17 @@ export const processBatch = async () => {
   } catch (err) {
     console.error("BATCH PROCESS ERROR:", err);
   }
+};
+
+export const triggerBatching = () => {
+  if (batchTimer) {
+    return;
+  }
+
+  console.log("New vote received. Triggering batch process in 10 seconds...");
+
+  batchTimer = setTimeout(() => {
+    processBatch();
+    batchTimer = null;
+  }, 10000);
 };

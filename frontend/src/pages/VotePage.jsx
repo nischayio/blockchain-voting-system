@@ -65,7 +65,13 @@ const VotePage = () => {
     setVoteState,
   } = useVoteStore();
 
-  const { updateUser } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
+
+  useEffect(() => {
+    if (user?.walletAddress && !wallet) {
+      setWallet(user.walletAddress);
+    }
+  }, [user, wallet, setWallet]);
 
   const showToast = (message, type = "info") => {
     setToastConfig({
