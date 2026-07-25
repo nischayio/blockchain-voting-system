@@ -15,13 +15,19 @@ import {
 } from "lucide-react";
 
 import Toast from "./Toast";
-import { changePassword } from "../services/authService";
+import { changePassword, validateWallet } from "../services/authService";
+import { connectWallet, signMessage } from "../utils/wallet";
+import { useVoteStore } from "../store/useVoteStore";
 
 const UserModal = ({ open, onClose, logout, anchorRef }) => {
   const authUser = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
+  const setWallet = useVoteStore((state) => state.setWallet);
   const modalRef = useRef(null);
 
   const [view, setView] = useState("profile");
+
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -120,6 +126,46 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
     });
   };
 
+  // Connect wallet
+  const handleConnectWallet = async () => {
+    try {
+      setIsConnecting(true);
+
+      const address = await connectWallet();
+
+      if (!address) {
+        showToast("Wallet connection failed", "error");
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      const message = `Link wallet to voting account: ${user.id}`;
+
+      const signature = await signMessage(message);
+
+      await validateWallet(address, signature);
+
+      setWallet(address);
+      const updatedUser = {
+        ...user,
+        walletAddress: address.toLowerCase(),
+      };
+
+      updateUser(updatedUser);
+
+      showToast("Wallet connected!", "success");
+    } catch (error) {
+      console.error(error);
+
+      const msg = error?.response?.data?.message;
+
+      showToast(msg || "Failed to connect wallet", "error");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   // logout button
   const handleLogout = () => {
     logout();
@@ -215,7 +261,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
               duration: 0.22,
               ease: [0.22, 1, 0.36, 1],
             }}
-            className="fixed top-24 right-0 z-[100] w-[400px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#09090B]/95 backdrop-blur-2xl shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+            className="fixed md:absolute top-24 md:top-26 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 lg:right-8 z-50 w-[calc(100vw-32px)] max-w-[400px] md:w-[400px] overflow-hidden rounded-[28px] bg-[#09090B]/95 backdrop-blur-2xl border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
           >
             {/* top glow */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
@@ -266,6 +312,20 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                     label="Wallet"
                     value={user?.walletAddress || "Not connected"}
                     mono
+                    action={
+                      !user?.walletAddress ? (
+                        <button
+                          onClick={handleConnectWallet}
+                          disabled={isConnecting}
+                          className="px-3 py-1.5 text-xs font-medium bg-white text-slate-950 rounded-lg hover:bg-slate-200 transition disabled:opacity-50 flex items-center gap-1.5"
+                        >
+                          {isConnecting && (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          )}
+                          {isConnecting ? "Connecting" : "Connect"}
+                        </button>
+                      ) : null
+                    }
                   />
                 </div>
 
@@ -383,23 +443,26 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
   );
 };
 
-const InfoRow = ({ icon, label, value, mono = false }) => (
-  <div className="flex items-center gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.03] px-4 py-3">
-    <span className="text-white/25">{icon}</span>
+const InfoRow = ({ icon, label, value, mono = false, action = null }) => (
+  <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/[0.05] bg-white/[0.03] px-4 py-3">
+    <div className="flex items-center gap-3 min-w-0">
+      <span className="text-white/25">{icon}</span>
 
-    <div className="min-w-0">
-      <p className="mb-0.5 text-[10px] uppercase tracking-[0.06em] text-white/30">
-        {label}
-      </p>
+      <div className="min-w-0">
+        <p className="mb-0.5 text-[10px] uppercase tracking-[0.06em] text-white/30">
+          {label}
+        </p>
 
-      <p
-        className={`truncate text-sm text-white/75 ${
-          mono ? "font-mono text-xs" : ""
-        }`}
-      >
-        {value}
-      </p>
+        <p
+          className={`truncate text-sm text-white/75 ${
+            mono ? "font-mono text-xs" : ""
+          }`}
+        >
+          {value}
+        </p>
+      </div>
     </div>
+    {action && <div>{action}</div>}
   </div>
 );
 
@@ -420,9 +483,13 @@ const PasswordInput = ({ label, type, value, onChange, show, toggle }) => (
       <button
         type="button"
         onClick={toggle}
-        className="text-slate-500 transition hover:text-white"
+        className="transition hover:text-white"
       >
-        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        {show ? (
+          <Eye className="h-4 w-4 text-white" />
+        ) : (
+          <EyeOff className="h-4 w-4 text-slate-500" />
+        )}
       </button>
     </div>
   </div>

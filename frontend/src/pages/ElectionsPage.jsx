@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getAllPublicElections } from "../services/electionService";
 import { formatToIST } from "../utils/dateTime";
+import EmptyState from "../components/EmptyState";
+import { Inbox } from "lucide-react";
 
 const ElectionsPage = () => {
   const [elections, setElections] = useState([]);
@@ -44,14 +46,6 @@ const ElectionsPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Loading elections...
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen max-w-7xl mx-auto px-6 py-12">
       <div className="mb-10">
@@ -61,10 +55,33 @@ const ElectionsPage = () => {
       </div>
 
       {/* render elections */}
-      {elections.length === 0 ? (
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-          No elections available
+      {loading ? (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl p-6"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="h-7 bg-white/10 rounded-lg w-1/2 animate-pulse" />
+                <div className="h-6 bg-white/10 rounded-full w-20 animate-pulse" />
+              </div>
+              <div className="h-4 bg-white/10 rounded-lg w-full mb-2 animate-pulse" />
+              <div className="h-4 bg-white/10 rounded-lg w-3/4 mb-4 animate-pulse" />
+              <div className="h-4 bg-white/10 rounded-lg w-1/3 mb-1 animate-pulse" />
+              <div className="h-4 bg-white/10 rounded-lg w-1/2 mt-4 mb-1 animate-pulse" />
+              <div className="h-4 bg-white/10 rounded-lg w-1/2 animate-pulse" />
+              <div className="mt-6">
+                <div className="h-12 bg-white/10 rounded-xl w-full animate-pulse" />
+              </div>
+            </div>
+          ))}
         </div>
+      ) : elections.length === 0 ? (
+        <EmptyState 
+          icon={Inbox} 
+          message="No active elections available right now" 
+        />
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
           {elections.map((election) => (

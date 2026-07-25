@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import API from "../services/api";
+import EmptyState from "../components/EmptyState";
+import { Database } from "lucide-react";
 
 const BatchPage = () => {
   const [batches, setBatches] = useState([]);
@@ -39,9 +41,19 @@ const BatchPage = () => {
       {/* Main Content */}
       <div className="flex-1">
         {loading ? (
-          <p className="text-center text-slate-400">Loading batches...</p>
+          <div className="space-y-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl">
+                <div className="h-6 bg-white/10 rounded-lg w-1/3 mb-4 animate-pulse" />
+                <div className="h-4 bg-white/10 rounded-lg w-full mb-3 animate-pulse" />
+                <div className="h-4 bg-white/10 rounded-lg w-full mb-3 animate-pulse" />
+                <div className="h-4 bg-white/10 rounded-lg w-1/4 mb-3 animate-pulse" />
+                <div className="h-4 bg-white/10 rounded-lg w-1/4 animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : batches.length === 0 ? (
-          <p className="text-center text-slate-400">No batches yet</p>
+          <EmptyState icon={Database} message="No batches have been processed yet" />
         ) : (
           <div className="space-y-6">
             {batches.map((batch) => (

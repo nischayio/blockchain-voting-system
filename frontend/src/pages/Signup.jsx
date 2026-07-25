@@ -163,12 +163,12 @@ const Signup = () => {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"
+              className="absolute right-4 top-1/2 -translate-y-1/2  hover:text-white transition"
             >
               {showPassword ? (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-5 h-5 text-white" />
               ) : (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-5 h-5 text-slate-500" />
               )}
             </button>
           </div>

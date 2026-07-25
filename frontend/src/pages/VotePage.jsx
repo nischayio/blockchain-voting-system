@@ -47,6 +47,8 @@ const VotePage = () => {
   const [toastConfig, setToastConfig] = useState(null);
   const [activeCandidate, setActiveCandidate] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [candidateToVote, setCandidateToVote] = useState(null);
   const [election, setElection] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const [hasVotedInElection, setHasVotedInElection] = useState(false);
@@ -75,20 +77,28 @@ const VotePage = () => {
   useEffect(() => {
     const checkUserVote = async () => {
       try {
-        // reset when election changes
         setHasVotedInElection(false);
 
         const res = await getMyVotes(1, 100);
 
         const votes = res?.data || [];
 
-        const voted = votes.some(
+        const voted = votes.find(
           (vote) =>
             vote.electionId?._id === electionId ||
             vote.electionId === electionId,
         );
 
-        setHasVotedInElection(voted);
+        if (voted) {
+          setHasVotedInElection(true);
+          if (voted.voteHash) {
+            setVoteHashOnly(voted.voteHash);
+          }
+        } else {
+          setHasVotedInElection(false);
+          setVoteHashOnly("");
+          setVoteState("idle");
+        }
       } catch (err) {
         console.error("Failed to check vote status:", err);
       }
@@ -152,11 +162,8 @@ const VotePage = () => {
       await validateWallet(address, signature);
 
       setWallet(address);
-
-      const existingUser = JSON.parse(localStorage.getItem("user"));
-
       const updatedUser = {
-        ...existingUser,
+        ...user,
         walletAddress: address.toLowerCase(),
       };
 
@@ -172,6 +179,15 @@ const VotePage = () => {
     } finally {
       setIsConnecting(false);
     }
+  };
+
+  const initiateVote = (candidateName) => {
+    if (!wallet) {
+      showToast("Connect wallet first", "error");
+      return;
+    }
+    setCandidateToVote(candidateName);
+    setConfirmModalOpen(true);
   };
 
   // Vote handling
@@ -503,7 +519,7 @@ Timestamp: ${timestamp}
                     whileTap={{
                       scale: 0.95,
                     }}
-                    onClick={() => handleVote(c.name)}
+                    onClick={() => initiateVote(c.name)}
                     disabled={
                       !wallet ||
                       hasVotedInElection ||
@@ -577,6 +593,54 @@ Timestamp: ${timestamp}
           </div>
         </SectionWrapper>
       </div>
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] max-w-md bg-slate-900 border border-white/10 p-6 md:p-6 rounded-3xl shadow-2xl z-[101]"
+            >
+              <h3 className="text-xl font-bold text-white mb-2">Confirm Vote</h3>
+              <p className="text-sm text-slate-400 mb-4 leading-relaxed">
+                Are you sure you want to cast your vote for{" "}
+                <span className="text-white font-semibold">
+                  {candidateToVote}
+                </span>{" "}
+                in the <span className="text-white font-semibold">{election?.title || 'current'}</span> election? This action is signed via your wallet and is permanent.
+              </p>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setConfirmModalOpen(false)}
+                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-whit text-sm font-medium rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setConfirmModalOpen(false);
+                    handleVote(candidateToVote);
+                  }}
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition"
+                >
+                  Confirm Vote
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -9,6 +9,8 @@ import EditElectionModal from "../components/admin/EditElectionModal";
 import { formatToIST } from "../utils/dateTime";
 import { motion, AnimatePresence } from "framer-motion";
 import Toast from "../components/Toast";
+import EmptyState from "../components/EmptyState";
+import { Inbox } from "lucide-react";
 
 const AdminDashboard = () => {
   const [elections, setElections] = useState([]);
@@ -47,9 +49,6 @@ const AdminDashboard = () => {
 
         return (res.data || []).map((election) => {
           const oldElection = prevMap.get(election._id);
-
-          // preserve reference
-          // if nothing changed
           if (
             oldElection &&
             JSON.stringify(oldElection) === JSON.stringify(election)
@@ -166,11 +165,26 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1">
         {loading ? (
-          <p className="text-slate-400">Loading elections...</p>
-        ) : elections.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-            No elections found
+          <div className="space-y-5">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 flex justify-between items-start">
+                <div className="w-1/2">
+                  <div className="h-6 bg-white/10 rounded-lg w-3/4 mb-4 animate-pulse" />
+                  <div className="h-6 bg-white/10 rounded-full w-24 mb-4 animate-pulse" />
+                  <div className="h-4 bg-white/10 rounded-lg w-1/3 mb-3 animate-pulse" />
+                  <div className="h-4 bg-white/10 rounded-lg w-1/4 mb-2 animate-pulse" />
+                  <div className="h-4 bg-white/10 rounded-lg w-1/4 animate-pulse" />
+                </div>
+                <div className="flex gap-3">
+                  <div className="h-10 w-24 bg-white/10 rounded-xl animate-pulse" />
+                  <div className="h-10 w-24 bg-white/10 rounded-xl animate-pulse" />
+                  <div className="h-10 w-24 bg-white/10 rounded-xl animate-pulse" />
+                </div>
+              </div>
+            ))}
           </div>
+        ) : elections.length === 0 ? (
+          <EmptyState icon={Inbox} message="No elections found" />
         ) : (
           <div className="space-y-5">
             {elections.map((election) => (
@@ -226,12 +240,21 @@ const AdminDashboard = () => {
                       Delete
                     </button>
 
-                    <Link
-                      to={`/admin/results/${election._id}`}
-                      className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300"
-                    >
-                      Results
-                    </Link>
+                    {election.status === "active" ? (
+                      <button
+                        disabled
+                        className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Results
+                      </button>
+                    ) : (
+                      <Link
+                        to={`/admin/results/${election._id}`}
+                        className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300"
+                      >
+                        Results
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>

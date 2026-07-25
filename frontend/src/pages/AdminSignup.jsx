@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
+import Toast from "../components/Toast";
+import { AnimatePresence } from "framer-motion";
 
 import { adminSignup } from "../services/adminAuthService";
 import { useAuthStore } from "../store/useAuthStore";
@@ -15,6 +17,11 @@ const AdminSignup = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [toastConfig, setToastConfig] = useState(null);
+
+  const showToast = (message, type = "info") => {
+    setToastConfig({ message, type });
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -46,7 +53,7 @@ const AdminSignup = () => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      showToast("Passwords do not match", "error");
       return;
     }
 
@@ -69,9 +76,13 @@ const AdminSignup = () => {
         role: res.data.role,
       });
 
-      navigate("/admin");
+      showToast("Signup successful!", "success");
+
+      setTimeout(() => {
+        navigate("/admin");
+      }, 1200);
     } catch (error) {
-      alert(error.response?.data?.message || "Signup failed");
+      showToast(error.response?.data?.message || "Signup failed", "error");
     } finally {
       setLoading(false);
     }
@@ -79,6 +90,16 @@ const AdminSignup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 py-24 pt-0">
+      <AnimatePresence>
+        {toastConfig && (
+          <Toast
+            message={toastConfig.message}
+            type={toastConfig.type}
+            onClose={() => setToastConfig(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl p-8"
@@ -118,12 +139,12 @@ const AdminSignup = () => {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+              className="absolute right-4 top-1/2 -translate-y-1/2  hover:text-white transition"
             >
               {showPassword ? (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-5 h-5 text-white" />
               ) : (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-5 h-5 text-slate-500" />
               )}
             </button>
           </div>
@@ -142,12 +163,12 @@ const AdminSignup = () => {
             <button
               type="button"
               onClick={() => setShowConfirmPassword((prev) => !prev)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
+              className="absolute right-4 top-1/2 -translate-y-1/2 hover:text-white transition"
             >
               {showConfirmPassword ? (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-5 h-5 text-white" />
               ) : (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-5 h-5 text-slate-500 " />
               )}
             </button>
           </div>
