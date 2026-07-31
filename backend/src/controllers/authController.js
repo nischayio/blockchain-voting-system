@@ -147,7 +147,7 @@ export const loginUser = async (req, res) => {
 // ADMIN SIGNUP
 export const signupAdmin = async (req, res) => {
   try {
-    const { name, email, password, profilePic, secretCode } = req.body;
+    const { name, email, password, secretCode } = req.body;
 
     // normalize email
     const normalizedEmail = email?.toLowerCase().trim();
@@ -196,7 +196,6 @@ export const signupAdmin = async (req, res) => {
       name,
       email: normalizedEmail,
       password: hashedPassword,
-      profilePic,
     });
 
     // generate token
@@ -213,7 +212,6 @@ export const signupAdmin = async (req, res) => {
           id: admin._id,
           name: admin.name,
           email: admin.email,
-          profilePic: admin.profilePic,
         },
       },
     });
@@ -276,7 +274,6 @@ export const loginAdmin = async (req, res) => {
           id: admin._id,
           name: admin.name,
           email: admin.email,
-          profilePic: admin.profilePic,
         },
       },
     });

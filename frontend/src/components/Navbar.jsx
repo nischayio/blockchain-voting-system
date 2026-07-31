@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
-import { ShieldCheck, User, Menu, X } from "lucide-react";
+import { ShieldCheck, User, UserCog, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useAuthStore } from "../store/useAuthStore";
@@ -180,7 +180,11 @@ const Navbar = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-white/5">
-                      <User className="w-5 h-5 text-slate-300" />
+                      {role === "admin" ? (
+                        <UserCog className="w-5 h-5 text-slate-300" />
+                      ) : (
+                        <User className="w-5 h-5 text-slate-300" />
+                      )}
                     </div>
                   )}
                 </button>
@@ -313,7 +317,11 @@ const Navbar = () => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-white/5">
-                          <User className="w-6 h-6 text-slate-300" />
+                          {role === "admin" ? (
+                            <UserCog className="w-6 h-6 text-slate-300" />
+                          ) : (
+                            <User className="w-6 h-6 text-slate-300" />
+                          )}
                         </div>
                       )}
                     </div>

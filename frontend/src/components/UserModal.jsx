@@ -12,6 +12,8 @@ import {
   Check,
   ShieldCheck,
   Loader2,
+  User,
+  UserCog,
 } from "lucide-react";
 
 import Toast from "./Toast";
@@ -339,8 +341,10 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                         alt="profile"
                         className="h-full w-full object-cover"
                       />
+                    ) : role === "admin" ? (
+                      <UserCog className="h-24 w-24 text-slate-300" />
                     ) : (
-                      <ShieldCheck className="h-24 w-24 text-slate-300" />
+                      <User className="h-24 w-24 text-slate-300" />
                     )}
                   </div>
 
@@ -370,9 +374,13 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
               <div className="w-1/3 p-6">
                 <div className="flex flex-col items-center pb-5">
                   <div
-                    onClick={() => setView("profile_picture")}
-                    className="mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.03] cursor-pointer hover:opacity-80 transition"
-                    title="View Profile Picture"
+                    onClick={() => {
+                      if (role === "user") setView("profile_picture");
+                    }}
+                    className={`mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.03] transition ${
+                      role === "user" ? "cursor-pointer hover:opacity-80" : ""
+                    }`}
+                    title={role === "user" ? "View Profile Picture" : ""}
                   >
                     {uploadingImage ? (
                       <Loader2 className="h-6 w-6 text-slate-300 animate-spin" />
@@ -382,8 +390,10 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                         alt="profile"
                         className="h-full w-full object-cover"
                       />
+                    ) : role === "admin" ? (
+                      <UserCog className="h-8 w-8 text-slate-300" />
                     ) : (
-                      <ShieldCheck className="h-8 w-8 text-slate-300" />
+                      <User className="h-8 w-8 text-slate-300" />
                     )}
                   </div>
 

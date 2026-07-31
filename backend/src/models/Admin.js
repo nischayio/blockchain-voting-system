@@ -11,7 +11,6 @@ const adminSchema = new mongoose.Schema({
     trim: true,
   },
   password: { type: String, required: true },
-  profilePic: { type: String },
 
   createdAt: { type: Date, default: Date.now },
 });
