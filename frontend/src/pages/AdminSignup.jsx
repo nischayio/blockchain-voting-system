@@ -28,7 +28,6 @@ const AdminSignup = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    profilePic: "",
     secretCode: "",
   });
 
@@ -64,7 +63,6 @@ const AdminSignup = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        profilePic: formData.profilePic,
         secretCode: formData.secretCode,
       };
 
@@ -172,14 +170,6 @@ const AdminSignup = () => {
               )}
             </button>
           </div>
-
-          <input
-            type="text"
-            name="profilePic"
-            placeholder="Profile Picture URL"
-            onChange={handleChange}
-            className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 outline-none"
-          />
 
           <input
             type="password"

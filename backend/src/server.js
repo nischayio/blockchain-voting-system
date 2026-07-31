@@ -44,5 +44,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Blockchain Voting System listening at port: ${PORT}`);
+  console.log(`NexusVote listening at port: ${PORT}`);
 });

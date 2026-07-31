@@ -172,9 +172,9 @@ const Navbar = () => {
                   onClick={() => setOpenProfile((prev) => !prev)}
                   className="w-11 h-11 rounded-full overflow-hidden border border-white/10 hover:border-white/20 transition"
                 >
-                  {user?.profilePic ? (
+                  {user?.profilePicture ? (
                     <img
-                      src={user.profilePic}
+                      src={user.profilePicture}
                       alt="profile"
                       className="w-full h-full object-cover"
                     />
@@ -305,9 +305,9 @@ const Navbar = () => {
                     className="flex items-center gap-3 w-full text-left p-2 -mx-2 hover:bg-white/5 rounded-xl transition"
                   >
                     <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 shrink-0">
-                      {user?.profilePic ? (
+                      {user?.profilePicture ? (
                         <img
-                          src={user.profilePic}
+                          src={user.profilePicture}
                           alt="profile"
                           className="w-full h-full object-cover"
                         />

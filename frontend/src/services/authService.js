@@ -52,3 +52,13 @@ export const changePassword = async ({
 
   return res.data;
 };
+
+// upload profile picture
+export const uploadProfilePicture = async (formData) => {
+  const res = await API.patch("/auth/user/profile-picture", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+};

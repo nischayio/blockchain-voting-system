@@ -612,9 +612,9 @@ Timestamp: ${timestamp}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.8,  }}
+              animate={{ opacity: 1, scale: 1, }}
+              exit={{ opacity: 0, scale: 0.8,  }}
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] max-w-md bg-slate-900 border border-white/10 p-6 md:p-6 rounded-3xl shadow-2xl z-[101]"
             >
               <h3 className="text-xl font-bold text-white mb-2">Confirm Vote</h3>

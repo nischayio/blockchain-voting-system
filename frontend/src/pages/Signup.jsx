@@ -21,7 +21,6 @@ const Signup = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    profilePic: "",
   });
 
   const [toastConfig, setToastConfig] = useState(null);
@@ -54,7 +53,6 @@ const Signup = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        profilePic: formData.profilePic,
       };
 
       const res = await signupUser(payload);
@@ -198,20 +196,6 @@ const Signup = () => {
                 <EyeOff className="w-5 h-5" />
               )}
             </button>
-          </div>
-
-          {/* Profile Pic */}
-          <div className="relative">
-            <Image className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-
-            <input
-              type="text"
-              name="profilePic"
-              placeholder="Profile Picture URL"
-              value={formData.profilePic}
-              onChange={handleChange}
-              className="w-full pl-12 pr-4 py-4 rounded-xl bg-black/30 border border-white/10 outline-none text-white"
-            />
           </div>
 
           <motion.button

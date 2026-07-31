@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import Toast from "./Toast";
-import { changePassword, validateWallet } from "../services/authService";
+import { changePassword, validateWallet, uploadProfilePicture } from "../services/authService";
 import { connectWallet, signMessage } from "../utils/wallet";
 import { useVoteStore } from "../store/useVoteStore";
 
@@ -124,6 +124,39 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
       message,
       type,
     });
+  };
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleProfilePictureUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (role !== "user") {
+      showToast("Only users can upload profile pictures", "error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("profilePicture", file);
+
+    try {
+      setUploadingImage(true);
+      const res = await uploadProfilePicture(formData);
+      updateUser({ ...user, profilePicture: res.data.profilePicture });
+      showToast("Profile picture updated", "success");
+    } catch (error) {
+      showToast(
+        error?.response?.data?.message || "Failed to upload profile picture",
+        "error"
+      );
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   // Connect wallet
@@ -267,22 +300,85 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
             <motion.div
+              initial={false}
               animate={{
-                x: view === "profile" ? "0%" : "-50%",
+                x:
+                  view === "profile_picture"
+                    ? "0%"
+                    : view === "profile"
+                    ? "-33.333333%"
+                    : "-66.666667%",
               }}
               transition={{
                 duration: 0.32,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="flex w-[200%]"
+              className="flex w-[300%]"
             >
-              {/* Profile */}
-              <div className="w-1/2 p-6">
-                <div className="flex flex-col items-center pb-5">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.03]">
-                    {user?.profilePic ? (
+              {/* Profile Picture View */}
+              <div className="w-1/3 p-6 flex flex-col">
+                <button
+                  onClick={() => setView("profile")}
+                  className="mb-5 flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Back
+                </button>
+
+                <h3 className="mb-8 text-lg font-semibold text-white">
+                  Profile Picture
+                </h3>
+
+                <div className="flex flex-1 flex-col items-center pb-6">
+                  <div className="mb-8 flex h-56 w-56 items-center justify-center overflow-hidden rounded-full border-4 border-white/10 bg-white/[0.03] shadow-xl">
+                    {uploadingImage ? (
+                      <Loader2 className="h-10 w-10 text-slate-300 animate-spin" />
+                    ) : user?.profilePicture ? (
                       <img
-                        src={user.profilePic}
+                        src={user.profilePicture}
+                        alt="profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <ShieldCheck className="h-24 w-24 text-slate-300" />
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleProfilePictureUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  {role === "user" && (
+                    <button
+                      onClick={() => {
+                        if (fileInputRef.current) fileInputRef.current.click();
+                      }}
+                      disabled={uploadingImage}
+                      className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-2.5 text-sm font-medium text-white transition hover:bg-white/[0.08] disabled:opacity-50"
+                    >
+                      {uploadingImage ? "Uploading..." : "Edit Profile Picture"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Profile */}
+              <div className="w-1/3 p-6">
+                <div className="flex flex-col items-center pb-5">
+                  <div
+                    onClick={() => setView("profile_picture")}
+                    className="mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.03] cursor-pointer hover:opacity-80 transition"
+                    title="View Profile Picture"
+                  >
+                    {uploadingImage ? (
+                      <Loader2 className="h-6 w-6 text-slate-300 animate-spin" />
+                    ) : user?.profilePicture ? (
+                      <img
+                        src={user.profilePicture}
                         alt="profile"
                         className="h-full w-full object-cover"
                       />
@@ -346,7 +442,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
               </div>
 
               {/* Password */}
-              <div className="w-1/2 p-6">
+              <div className="w-1/3 p-6">
                 <button
                   onClick={() => setView("profile")}
                   className="mb-5 flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
@@ -435,6 +531,7 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                   </button>
                 </div>
               </div>
+
             </motion.div>
           </motion.div>
         )}
