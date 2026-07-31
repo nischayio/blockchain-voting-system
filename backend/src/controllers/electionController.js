@@ -614,112 +614,6 @@ export const removeCandidate = async (req, res) => {
 };
 
 // GET ELECTION RESULTS
-// export const getElectionResults = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     // find election
-//     const election = await Election.findById(id);
-
-//     if (!election) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Election not found",
-//       });
-//     }
-
-//     // results only after election ends
-//     const now = new Date();
-
-//     const hasEnded = now > election.endTime;
-
-//     if (!hasEnded) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Election results are not available yet",
-//       });
-//     }
-
-//     // fetch finalized votes
-//     const votes = await Vote.find({
-//       electionId: id,
-//       status: "batched",
-//     });
-
-//     const totalVotes = votes.length;
-
-//     // initialize candidate counts
-//     const counts = {};
-
-//     election.candidates.forEach((candidate) => {
-//       counts[candidate] = 0;
-//     });
-
-//     // aggregate votes
-//     votes.forEach((vote) => {
-//       if (counts[vote.candidate] !== undefined) {
-//         counts[vote.candidate] += 1;
-//       }
-//     });
-
-//     // result array
-//     const results = Object.entries(counts).map(([candidate, votes]) => ({
-//       candidate,
-//       votes,
-//       percentage:
-//         totalVotes > 0 ? Number(((votes / totalVotes) * 100).toFixed(2)) : 0,
-//     }));
-
-//     // determine winner
-//     let winner = null;
-//     let isTie = false;
-
-//     if (totalVotes > 0) {
-//       const highestVoteCount = Math.max(
-//         ...results.map((result) => result.votes),
-//       );
-
-//       // candidates tie check
-//       const topCandidates = results.filter(
-//         (result) => result.votes === highestVoteCount,
-//       );
-
-//       if (topCandidates.length === 1) {
-//         winner = topCandidates[0];
-//       } else {
-//         isTie = true;
-//       }
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-
-//       data: {
-//         electionId: election._id,
-
-//         title: election.title,
-
-//         status: "ended",
-
-//         totalVotes,
-
-//         winner: winner ? winner.candidate : null,
-
-//         isTie,
-
-//         results,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("GET RESULTS ERROR:", error);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
 export const getElectionResults = async (req, res) => {
   try {
     const { id } = req.params;
@@ -734,57 +628,105 @@ export const getElectionResults = async (req, res) => {
       });
     }
 
-    // get all votes belonging to this election
+    // results only after election ends
+    const now = new Date();
+
+    const hasEnded = now > election.endTime;
+
+    if (!hasEnded) {
+      return res.status(400).json({
+        success: false,
+        message: "Election results are not available yet",
+      });
+    }
+
+    // fetch only finalized / batched votes
     const votes = await Vote.find({
       electionId: id,
+      status: "batched",
     });
 
-    // initialize vote count for every candidate
-    const count = {};
+    const totalVotes = votes.length;
+
+    // initialize candidate counts
+    const counts = {};
 
     election.candidates.forEach((candidate) => {
       counts[candidate.name] = 0;
     });
 
-    // count votes
+    // aggregate votes
     votes.forEach((vote) => {
       if (counts[vote.candidate] !== undefined) {
-        counts[vote.candidate]++;
+        counts[vote.candidate] += 1;
       }
     });
 
-    const totalVotes = votes.length;
-
-    // build result with candidate information
+    // build results with candidate information
     const results = election.candidates.map((candidate) => {
       const candidateVotes = counts[candidate.name];
-
-      const percentage =
-        totalVotes > 0
-          ? Number(((candidateVotes / totalVotes) * 100).toFixed(2))
-          : 0;
 
       return {
         candidateId: candidate._id,
         name: candidate.name,
         image: candidate.image,
         votes: candidateVotes,
-        percentage,
+
+        percentage:
+          totalVotes > 0
+            ? Number(((candidateVotes / totalVotes) * 100).toFixed(2))
+            : 0,
       };
     });
 
+    // determine winner
+    let winner = null;
+    let isTie = false;
+
+    if (totalVotes > 0) {
+      const highestVoteCount = Math.max(
+        ...results.map((result) => result.votes),
+      );
+
+      // candidates tie check
+      const topCandidates = results.filter(
+        (result) => result.votes === highestVoteCount,
+      );
+
+      if (topCandidates.length === 1) {
+        winner = topCandidates[0];
+      } else {
+        isTie = true;
+      }
+    }
+
     return res.status(200).json({
       success: true,
+
       data: {
         election: {
           id: election._id,
           title: election.title,
           description: election.description,
-          status: election.status,
+          status: "ended",
           startTime: election.startTime,
           endTime: election.endTime,
         },
+
         totalVotes,
+
+        winner: winner
+          ? {
+              candidateId: winner.candidateId,
+              name: winner.name,
+              image: winner.image,
+              votes: winner.votes,
+              percentage: winner.percentage,
+            }
+          : null,
+
+        isTie,
+
         results,
       },
     });

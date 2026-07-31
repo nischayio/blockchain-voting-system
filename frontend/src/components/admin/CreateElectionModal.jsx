@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Trash2, CalendarDays } from "lucide-react";
+import { X, Plus, Trash2, CalendarDays, Image as ImageIcon } from "lucide-react";
 import { createElection } from "../../services/adminElectionService";
 import Toast from "../Toast";
 
 const CreateElectionModal = ({ open, onClose, onCreated }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [candidates, setCandidates] = useState(["", ""]);
+  const [candidates, setCandidates] = useState([
+    { name: "", imageFile: null, preview: null },
+    { name: "", imageFile: null, preview: null },
+  ]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,21 +55,25 @@ const CreateElectionModal = ({ open, onClose, onCreated }) => {
   if (!open) return null;
 
   // update candidate
-  const updateCandidate = (index, value) => {
+  const updateCandidate = (index, key, value) => {
     const updated = [...candidates];
-    updated[index] = value;
+    updated[index][key] = value;
+    
+    if (key === "imageFile" && value) {
+      updated[index].preview = URL.createObjectURL(value);
+    }
+    
     setCandidates(updated);
   };
 
   // add candidate
   const addCandidate = () => {
-    setCandidates([...candidates, ""]);
+    setCandidates([...candidates, { name: "", imageFile: null, preview: null }]);
   };
 
   // remove candidate
   const removeCandidate = (index) => {
     if (candidates.length <= 2) return;
-
     setCandidates(candidates.filter((_, i) => i !== index));
   };
 
@@ -77,22 +84,42 @@ const CreateElectionModal = ({ open, onClose, onCreated }) => {
     try {
       setLoading(true);
 
-      const cleanedCandidates = candidates.map((c) => c.trim()).filter(Boolean);
+      const validCandidates = candidates.filter(
+        (c) => c.name.trim() && c.imageFile
+      );
 
-      await createElection({
-        title: title.trim(),
-        description: description.trim(),
-        candidates: cleanedCandidates,
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
+      if (validCandidates.length < 2) {
+        setLoading(false);
+        showToast("At least 2 candidates with images are required", "error");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("startTime", new Date(startTime).toISOString());
+      formData.append("endTime", new Date(endTime).toISOString());
+
+      const candidateNames = [];
+      
+      validCandidates.forEach((c) => {
+        candidateNames.push(c.name.trim());
+        formData.append("candidateImages", c.imageFile);
       });
+
+      formData.append("candidates", JSON.stringify(candidateNames));
+
+      await createElection(formData);
 
       onCreated();
       onClose();
 
       setTitle("");
       setDescription("");
-      setCandidates(["", ""]);
+      setCandidates([
+        { name: "", imageFile: null, preview: null },
+        { name: "", imageFile: null, preview: null },
+      ]);
       setStartTime("");
       setEndTime("");
     } catch (error) {
@@ -169,19 +196,40 @@ const CreateElectionModal = ({ open, onClose, onCreated }) => {
 
               <div className="space-y-3">
                 {candidates.map((candidate, index) => (
-                  <div key={index} className="flex gap-3">
+                  <div key={index} className="flex gap-3 items-center">
+                    <label className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 cursor-pointer overflow-hidden hover:bg-white/10 transition shrink-0">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) updateCandidate(index, "imageFile", file);
+                        }}
+                      />
+                      {candidate.preview ? (
+                        <img
+                          src={candidate.preview}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="w-5 h-5 text-slate-400" />
+                      )}
+                    </label>
+
                     <input
                       type="text"
                       placeholder={`Candidate ${index + 1}`}
-                      value={candidate}
-                      onChange={(e) => updateCandidate(index, e.target.value)}
-                      className="flex-1 px-5 py-4 rounded-2xl bg-white/5 border border-white/10 outline-none"
+                      value={candidate.name}
+                      onChange={(e) => updateCandidate(index, "name", e.target.value)}
+                      className="flex-1 px-5 py-4 rounded-2xl bg-white/5 border border-white/10 outline-none h-14"
                     />
 
                     <button
                       type="button"
                       onClick={() => removeCandidate(index)}
-                      className="px-4 rounded-2xl bg-red-500/20 text-red-300"
+                      className="px-4 h-14 rounded-2xl bg-red-500/20 text-red-300 shrink-0"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

@@ -51,7 +51,7 @@ const AdminResults = () => {
       <div className="mb-10">
         <h1 className="text-4xl font-bold">Admin Results Dashboard</h1>
 
-        <p className="text-slate-400 mt-2">{result.title}</p>
+        <p className="text-slate-400 mt-2">{result.election.title}</p>
       </div>
 
       {/* Result Section */}
@@ -59,7 +59,7 @@ const AdminResults = () => {
         <div className="rounded-3xl bg-white/5 border border-white/10 p-6">
           <p className="text-slate-400">Winner</p>
 
-          <h2 className="text-2xl font-bold mt-2">{result.winner || "None"}</h2>
+          <h2 className="text-2xl font-bold mt-2">{result.isTie ? "Tie" : (result.winner?.name || "None")}</h2>
         </div>
 
         <div className="rounded-3xl bg-white/5 border border-white/10 p-6">
@@ -72,7 +72,7 @@ const AdminResults = () => {
           <p className="text-slate-400">Status</p>
 
           <h2 className="text-2xl font-bold mt-2 capitalize">
-            {result.status}
+            {result.election.status}
           </h2>
         </div>
       </div>
@@ -81,27 +81,39 @@ const AdminResults = () => {
       <div className="space-y-5">
         {result.results.map((candidate) => (
           <div
-            key={candidate.candidate}
-            className="rounded-3xl border border-white/10 bg-white/5 p-6"
+            key={candidate.candidateId}
+            className="rounded-3xl border border-white/10 bg-white/5 p-6 flex gap-6 items-center"
           >
-            <div className="flex justify-between mb-3">
-              <h3 className="text-lg font-semibold">{candidate.candidate}</h3>
-
-              <span>{candidate.votes} votes</span>
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white/5 shrink-0">
+              {candidate.image ? (
+                <img src={candidate.image} alt={candidate.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-400 bg-white/5 border border-white/10">
+                  <span className="text-xs">No img</span>
+                </div>
+              )}
             </div>
 
-            <div className="w-full h-4 rounded-full bg-white/10 overflow-hidden">
-              <div
-                style={{
-                  width: `${candidate.percentage}%`,
-                }}
-                className="h-full bg-white rounded-full transition-all duration-700"
-              />
-            </div>
+            <div className="flex-1">
+              <div className="flex justify-between mb-3">
+                <h3 className="text-lg font-semibold">{candidate.name}</h3>
 
-            <p className="text-right mt-2 text-slate-400">
-              {candidate.percentage}%
-            </p>
+                <span>{candidate.votes} votes</span>
+              </div>
+
+              <div className="w-full h-4 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  style={{
+                    width: `${candidate.percentage}%`,
+                  }}
+                  className="h-full bg-white rounded-full transition-all duration-700"
+                />
+              </div>
+
+              <p className="text-right mt-2 text-slate-400">
+                {candidate.percentage}%
+              </p>
+            </div>
           </div>
         ))}
       </div>

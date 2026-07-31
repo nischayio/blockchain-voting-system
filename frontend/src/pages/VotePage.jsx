@@ -127,8 +127,9 @@ const VotePage = () => {
 
         setCandidates(
           electionData.candidates.map((candidate, index) => ({
-            id: index + 1,
-            name: candidate,
+            id: candidate._id || index + 1,
+            name: candidate.name,
+            image: candidate.image,
             role: "Election Candidate",
           })),
         );
@@ -219,7 +220,7 @@ const VotePage = () => {
       const message = `
 Blockchain Voting System
 
-Election: ${election?._id}
+Election: ${election?.title}
 Candidate: ${candidateName}
 
 Vote Hash: ${hash}
@@ -501,16 +502,21 @@ Timestamp: ${timestamp}
               {candidates.map((c) => (
                 <GlassCard
                   key={c.id}
-                  className={`p-8 flex flex-col items-center group transition-all duration-300 ${
+                  hoverEffect="none"
+                  className={`p-8 flex flex-col items-center group transition-all duration-300 hover:border-blue-500/40 hover:shadow-[0_0_30px_rgba(59,130,246,0.2)] ${
                     selectedCandidate === c.name
-                      ? "border-blue-500 bg-blue-500/10"
+                      ? "border-blue-500 bg-blue-500/10 shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                       : ""
                   }`}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                  <div className="w-20 h-20 rounded-full bg-slate-800/50 border border-white/10 flex items-center justify-center mb-6 shadow-inner relative z-10">
-                    <User className="w-10 h-10 text-slate-400 group-hover:text-blue-400 transition-colors" />
+                  <div className={`w-32 h-32 rounded-full bg-slate-800/50 border border-white/10 mb-6 shadow-inner relative z-10 overflow-hidden ${!c.image ? 'flex items-center justify-center' : ''}`}>
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} className="w-full h-full object-cover block" />
+                    ) : (
+                      <User className="w-16 h-16 text-slate-400 group-hover:text-blue-400 transition-colors" />
+                    )}
                   </div>
 
                   <h3 className="text-xl font-bold text-slate-100 mb-1 relative z-10">
@@ -629,7 +635,7 @@ Timestamp: ${timestamp}
               <div className="flex gap-4">
                 <button
                   onClick={() => setConfirmModalOpen(false)}
-                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-whit text-sm font-medium rounded-xl transition"
+                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl transition"
                 >
                   Cancel
                 </button>

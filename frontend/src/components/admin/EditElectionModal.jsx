@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Plus, Trash2, CalendarDays } from "lucide-react";
+import { X, Plus, Trash2, CalendarDays, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
@@ -67,7 +67,7 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
     setTitle(election.title || "");
     setDescription(election.description || "");
     const cleanedCandidates =
-      election?.candidates?.filter((candidate) => candidate?.trim()) || [];
+      election?.candidates?.filter((candidate) => candidate?.name?.trim()) || [];
 
     setCandidates(cleanedCandidates);
 
@@ -82,14 +82,18 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
 
   // Add Candidate
   const handleAddCandidate = () => {
-    setCandidates((prev) => [...prev, ""]);
+    setCandidates((prev) => [...prev, { name: "", imageFile: null, preview: null }]);
   };
 
   // update candidate
-  const updateCandidate = (index, value) => {
+  const updateCandidate = (index, key, value) => {
     const updated = [...candidates];
 
-    updated[index] = value;
+    updated[index][key] = value;
+    
+    if (key === "imageFile" && value) {
+      updated[index].preview = URL.createObjectURL(value);
+    }
 
     setCandidates(updated);
   };
@@ -110,26 +114,28 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
 
     try {
       setLoading(true);
-      const cleanedCandidates = candidates.map((c) => c.trim()).filter(Boolean);
 
       // new candidates
-      const addedCandidates = cleanedCandidates.filter(
-        (candidate) => !originalCandidates.includes(candidate),
+      const addedCandidates = candidates.filter(
+        (candidate) => !candidate._id && candidate.name.trim() && candidate.imageFile,
       );
 
       // removed candidates
       const removedCandidates = originalCandidates.filter(
-        (candidate) => !cleanedCandidates.includes(candidate),
+        (origCandidate) => !candidates.some(c => c._id === origCandidate._id),
       );
 
       // add candidates
       for (const candidate of addedCandidates) {
-        await addCandidate(election._id, candidate);
+        const formData = new FormData();
+        formData.append("name", candidate.name.trim());
+        formData.append("candidateImage", candidate.imageFile);
+        await addCandidate(election._id, formData);
       }
 
       // remove candidates
       for (const candidate of removedCandidates) {
-        await removeCandidate(election._id, candidate);
+        await removeCandidate(election._id, candidate._id);
       }
 
       await updateElection(election._id, {
@@ -227,21 +233,44 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
 
               <div className="space-y-3">
                 {candidates.map((candidate, index) => (
-                  <div key={index} className="flex gap-3">
+                  <div key={index} className="flex gap-3 items-center">
+                    <label className={`flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 overflow-hidden shrink-0 ${!candidate._id && isEditable ? 'cursor-pointer hover:bg-white/10 transition' : ''}`}>
+                      {!candidate._id && isEditable && (
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) updateCandidate(index, "imageFile", file);
+                          }}
+                        />
+                      )}
+                      
+                      {candidate.preview || candidate.image ? (
+                        <img
+                          src={candidate.preview || candidate.image}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="w-5 h-5 text-slate-400" />
+                      )}
+                    </label>
                     <input
                       type="text"
-                      value={candidate}
-                      disabled={!isEditable}
+                      value={candidate.name || ""}
+                      disabled={!isEditable || candidate._id}
                       placeholder={`Candidate ${index + 1}`}
-                      onChange={(e) => updateCandidate(index, e.target.value)}
-                      className="flex-1 px-5 py-4 rounded-2xl bg-white/5 border border-white/10 outline-none disabled:opacity-60"
+                      onChange={(e) => updateCandidate(index, "name", e.target.value)}
+                      className="flex-1 px-5 py-4 rounded-2xl bg-white/5 border border-white/10 outline-none disabled:opacity-60 h-14"
                     />
 
                     {isEditable && (
                       <button
                         type="button"
                         onClick={() => handleRemoveCandidate(index)}
-                        className="px-4 rounded-2xl bg-red-500/20 text-red-300 hover:bg-red-500/30 transition"
+                        className="px-4 h-14 rounded-2xl bg-red-500/20 text-red-300 hover:bg-red-500/30 transition shrink-0"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

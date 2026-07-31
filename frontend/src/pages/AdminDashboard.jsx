@@ -305,50 +305,32 @@ const AdminDashboard = () => {
 
             {/* Modal */}
             <motion.div
-              initial={{
-                opacity: 0,
-                scale: 0.95,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                y: 0,
-              }}
-              exit={{
-                opacity: 0,
-                scale: 0.95,
-                y: 20,
-              }}
-              transition={{
-                duration: 0.2,
-              }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-[92%] max-w-md rounded-[32px] border border-white/10 bg-slate-900/90 backdrop-blur-2xl p-8 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] max-w-md bg-slate-900 border border-white/10 p-6 md:p-6 rounded-3xl shadow-2xl z-[101]"
             >
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Delete Election?
-              </h2>
-
-              <p className="text-slate-400 mb-8">
-                This action cannot be undone.
+              <h3 className="text-xl font-bold text-white mb-2">Delete Election?</h3>
+              <p className="text-sm text-slate-400 mb-4 leading-relaxed">
+                Are you sure you want to delete this election? This action cannot be undone and will permanently remove all associated data.
               </p>
 
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   onClick={() => {
                     setDeleteConfirmOpen(false);
                     setElectionToDelete(null);
                   }}
-                  className="flex-1 py-3 rounded-2xl bg-white/10 text-slate-300 hover:bg-white/15 transition"
+                  className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-xl transition"
                 >
                   Cancel
                 </button>
 
                 <button
                   onClick={handleDelete}
-                  className="flex-1 py-3 rounded-2xl bg-red-500/20 text-red-300 border border-red-500/20 hover:bg-red-500/30 transition"
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-500/20 transition"
                 >
-                  Delete
+                  Delete Election
                 </button>
               </div>
             </motion.div>

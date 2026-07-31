@@ -1,8 +1,11 @@
 import API from "./api";
 
-/* create election */
-export const createElection = async (payload) => {
-  const res = await API.post("/v1/elections", payload);
+export const createElection = async (formData) => {
+  const res = await API.post("/v1/elections", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
   return res.data;
 };
@@ -38,18 +41,20 @@ export const deleteElection = async (id) => {
 };
 
 /* add candidate */
-export const addCandidate = async (electionId, name) => {
-  const res = await API.post(`/v1/elections/${electionId}/candidates`, {
-    name,
+export const addCandidate = async (electionId, formData) => {
+  const res = await API.post(`/v1/elections/${electionId}/candidates`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
 
   return res.data;
 };
 
 /* remove candidate */
-export const removeCandidate = async (electionId, candidateName) => {
+export const removeCandidate = async (electionId, candidateId) => {
   const res = await API.delete(
-    `/v1/elections/${electionId}/candidates/${encodeURIComponent(candidateName)}`,
+    `/v1/elections/${electionId}/candidates/${encodeURIComponent(candidateId)}`,
   );
 
   return res.data;
