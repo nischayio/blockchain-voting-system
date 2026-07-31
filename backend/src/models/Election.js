@@ -1,5 +1,24 @@
 import mongoose from "mongoose";
 
+// CANDIDATE SCHEMA
+const candidateSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+
+  image: {
+    type: String,
+    required: true,
+  },
+
+  imagePublicId: {
+    type: String,
+    required: true,
+  },
+});
+
 // ELECTION MODEL
 const electionSchema = new mongoose.Schema(
   {
@@ -15,13 +34,10 @@ const electionSchema = new mongoose.Schema(
       trim: true,
     },
 
-    candidates: [
-      {
-        type: String,
-        required: true,
-        trim: true,
-      },
-    ],
+    candidates: {
+      type: [candidateSchema],
+      required: true,
+    },
 
     startTime: {
       type: Date,

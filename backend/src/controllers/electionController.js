@@ -1,12 +1,18 @@
 import Election from "../models/Election.js";
 import Vote from "../models/Vote.js";
+import {
+  uploadCandidateImage,
+  deleteCloudinaryImage,
+} from "../services/cloudinaryService.js";
 
 // CREATE ELECTION
 export const createElection = async (req, res) => {
+  const uploadedImages = [];
+
   try {
     const { title, description, candidates, startTime, endTime } = req.body;
 
-    // validate fields
+    // Validate required fields
     if (!title || !candidates || !startTime || !endTime) {
       return res.status(400).json({
         success: false,
@@ -14,15 +20,27 @@ export const createElection = async (req, res) => {
       });
     }
 
-    // validate candidates
-    if (!Array.isArray(candidates)) {
+    // Parse candidates from multipart/form-data
+    let parsedCandidates;
+
+    try {
+      parsedCandidates = JSON.parse(candidates);
+    } catch {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid candidates format",
+      });
+    }
+
+    // Validate candidates
+    if (!Array.isArray(parsedCandidates)) {
       return res.status(400).json({
         success: false,
         message: "Candidates must be an array",
       });
     }
 
-    const normalizedCandidates = candidates
+    const normalizedCandidates = parsedCandidates
       .map((candidate) => candidate.trim())
       .filter(Boolean);
 
@@ -33,7 +51,7 @@ export const createElection = async (req, res) => {
       });
     }
 
-    // duplicate candidates check
+    // Duplicate candidate check
     const uniqueCandidates = new Set(
       normalizedCandidates.map((candidate) => candidate.toLowerCase()),
     );
@@ -45,10 +63,24 @@ export const createElection = async (req, res) => {
       });
     }
 
-    // validate dates
-    const start = new Date(startTime);
+    // Every candidate must have an image
+    if (!req.files || req.files.length !== normalizedCandidates.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Each candidate must have an image",
+      });
+    }
 
+    // Validate dates
+    const start = new Date(startTime);
     const end = new Date(endTime);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid start or end time",
+      });
+    }
 
     if (end <= start) {
       return res.status(400).json({
@@ -57,7 +89,7 @@ export const createElection = async (req, res) => {
       });
     }
 
-    // check initial status
+    // Determine initial election status
     const now = new Date();
 
     let status = "upcoming";
@@ -70,27 +102,50 @@ export const createElection = async (req, res) => {
       status = "ended";
     }
 
-    // create election
+    // Upload candidate images
+    const candidateData = [];
+
+    for (let i = 0; i < normalizedCandidates.length; i++) {
+      const result = await uploadCandidateImage(req.files[i].buffer);
+
+      uploadedImages.push(result.public_id);
+
+      candidateData.push({
+        name: normalizedCandidates[i],
+        image: result.secure_url,
+        imagePublicId: result.public_id,
+      });
+    }
+
+    // Create election
     const election = await Election.create({
       title: title.trim(),
 
       description: description?.trim() || "",
 
-      candidates: normalizedCandidates,
+      candidates: candidateData,
 
       startTime: start,
+
       endTime: end,
+
       status,
     });
 
     return res.status(201).json({
       success: true,
       message: "Election created successfully",
-
       data: election,
     });
   } catch (error) {
     console.error("CREATE ELECTION ERROR:", error);
+
+    // Clean up Cloudinary images if creation fails
+    if (uploadedImages.length > 0) {
+      await Promise.allSettled(
+        uploadedImages.map((publicId) => deleteCloudinaryImage(publicId)),
+      );
+    }
 
     return res.status(500).json({
       success: false,
@@ -217,9 +272,8 @@ export const updateElection = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { title, description, candidates, startTime, endTime } = req.body;
+    const { title, description, startTime, endTime } = req.body;
 
-    // find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -229,90 +283,73 @@ export const updateElection = async (req, res) => {
       });
     }
 
-    // ended elections immutable
-    if (election.status === "ended") {
+    // Only upcoming elections can be edited
+    if (election.status !== "upcoming") {
       return res.status(400).json({
         success: false,
-        message: "Ended elections cannot be edited",
+        message: "Only upcoming elections can be updated",
       });
     }
 
-    // active election restrictions
-    if (election.status === "active") {
-      if (
-        candidates &&
-        JSON.stringify(candidates) !== JSON.stringify(election.candidates)
-      ) {
+    // Update title
+    if (title !== undefined) {
+      const normalizedTitle = title.trim();
+
+      if (!normalizedTitle) {
         return res.status(400).json({
           success: false,
-          message: "Cannot modify candidates during active election",
+          message: "Title cannot be empty",
         });
       }
+
+      election.title = normalizedTitle;
     }
 
-    // normalize candidates
-    let normalizedCandidates = election.candidates;
-
-    if (candidates) {
-      if (!Array.isArray(candidates)) {
-        return res.status(400).json({
-          success: false,
-          message: "Candidates must be an array",
-        });
-      }
-
-      normalizedCandidates = candidates
-        .map((candidate) => candidate.trim())
-        .filter(Boolean);
-
-      if (normalizedCandidates.length < 2) {
-        return res.status(400).json({
-          success: false,
-          message: "At least 2 candidates are required",
-        });
-      }
-
-      const uniqueCandidates = new Set(
-        normalizedCandidates.map((candidate) => candidate.toLowerCase()),
-      );
-
-      if (uniqueCandidates.size !== normalizedCandidates.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Duplicate candidates are not allowed",
-        });
-      }
+    // Update description
+    if (description !== undefined) {
+      election.description = description.trim();
     }
 
-    // validate dates
-    const start = startTime ? new Date(startTime) : election.startTime;
+    // Determine final dates
+    const newStartTime =
+      startTime !== undefined ? new Date(startTime) : election.startTime;
 
-    const end = endTime ? new Date(endTime) : election.endTime;
+    const newEndTime =
+      endTime !== undefined ? new Date(endTime) : election.endTime;
 
-    if (end <= start) {
+    // Validate start time
+    if (Number.isNaN(newStartTime.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid start time",
+      });
+    }
+
+    // Validate end time
+    if (Number.isNaN(newEndTime.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid end time",
+      });
+    }
+
+    // End must be after start
+    if (newEndTime <= newStartTime) {
       return res.status(400).json({
         success: false,
         message: "End time must be after start time",
       });
     }
 
-    // update fields
-    election.title = title?.trim() || election.title;
+    election.startTime = newStartTime;
+    election.endTime = newEndTime;
 
-    election.description = description?.trim() ?? election.description;
-
-    election.candidates = normalizedCandidates;
-
-    election.startTime = start;
-
-    election.endTime = end;
-
-    // runtime status recalculation
+    // Recalculate status
     const now = new Date();
 
-    if (now < start) {
+    if (now < newStartTime) {
       election.status = "upcoming";
-    } else if (now >= start && now <= end) {
+    } else if (now <= newEndTime) {
       election.status = "active";
     } else {
       election.status = "ended";
@@ -323,7 +360,6 @@ export const updateElection = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Election updated successfully",
-
       data: election,
     });
   } catch (error) {
@@ -341,7 +377,7 @@ export const deleteElection = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // find election
+    // Find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -351,7 +387,7 @@ export const deleteElection = async (req, res) => {
       });
     }
 
-    // active election delete prevention
+    // Active election delete prevention
     if (election.status === "active") {
       return res.status(400).json({
         success: false,
@@ -359,7 +395,7 @@ export const deleteElection = async (req, res) => {
       });
     }
 
-    // check votes
+    // Check whether election has votes
     const voteExists = await Vote.exists({
       electionId: id,
     });
@@ -371,8 +407,32 @@ export const deleteElection = async (req, res) => {
       });
     }
 
-    // delete election
+    // Store candidate image public IDs before deleting election
+    const candidateImagePublicIds = election.candidates
+      .map((candidate) => candidate.imagePublicId)
+      .filter(Boolean);
+
+    // Delete election from MongoDB first
     await Election.findByIdAndDelete(id);
+
+    // Delete candidate images from Cloudinary
+    if (candidateImagePublicIds.length > 0) {
+      const deletionResults = await Promise.allSettled(
+        candidateImagePublicIds.map((publicId) =>
+          deleteCloudinaryImage(publicId),
+        ),
+      );
+
+      // Log any Cloudinary deletion failures
+      deletionResults.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error(
+            `FAILED TO DELETE CANDIDATE IMAGE: ${candidateImagePublicIds[index]}`,
+            result.reason,
+          );
+        }
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -390,15 +450,23 @@ export const deleteElection = async (req, res) => {
 
 // ADD CANDIDATE
 export const addCandidate = async (req, res) => {
+  let uploadedPublicId = null;
+
   try {
     const { id } = req.params;
-
     const { name } = req.body;
 
     if (!name?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Candidate name is required",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Candidate image is required",
       });
     }
 
@@ -411,7 +479,7 @@ export const addCandidate = async (req, res) => {
       });
     }
 
-    // lifecycle protection
+    // Candidates can only be modified before election starts
     if (election.status !== "upcoming") {
       return res.status(400).json({
         success: false,
@@ -421,8 +489,10 @@ export const addCandidate = async (req, res) => {
 
     const candidateName = name.trim();
 
+    // Duplicate candidate check
     const exists = election.candidates.some(
-      (candidate) => candidate.toLowerCase() === candidateName.toLowerCase(),
+      (candidate) =>
+        candidate.name.toLowerCase() === candidateName.toLowerCase(),
     );
 
     if (exists) {
@@ -432,18 +502,36 @@ export const addCandidate = async (req, res) => {
       });
     }
 
-    election.candidates.push(candidateName);
+    // Upload image
+    const result = await uploadCandidateImage(req.file.buffer);
+
+    uploadedPublicId = result.public_id;
+
+    // Add candidate
+    election.candidates.push({
+      name: candidateName,
+      image: result.secure_url,
+      imagePublicId: result.public_id,
+    });
 
     await election.save();
 
     return res.status(200).json({
       success: true,
       message: "Candidate added successfully",
-
       data: election,
     });
   } catch (error) {
     console.error("ADD CANDIDATE ERROR:", error);
+
+    // Remove uploaded image if MongoDB operation failed
+    if (uploadedPublicId) {
+      try {
+        await deleteCloudinaryImage(uploadedPublicId);
+      } catch (cleanupError) {
+        console.error("CANDIDATE IMAGE CLEANUP ERROR:", cleanupError);
+      }
+    }
 
     return res.status(500).json({
       success: false,
@@ -455,9 +543,9 @@ export const addCandidate = async (req, res) => {
 // REMOVE CANDIDATE
 export const removeCandidate = async (req, res) => {
   try {
-    const { id, candidateName } = req.params;
+    const { id, candidateId } = req.params;
 
-    // find election
+    // Find election
     const election = await Election.findById(id);
 
     if (!election) {
@@ -467,7 +555,7 @@ export const removeCandidate = async (req, res) => {
       });
     }
 
-    // lifecycle protection
+    // Candidates can only be modified before election starts
     if (election.status !== "upcoming") {
       return res.status(400).json({
         success: false,
@@ -475,25 +563,44 @@ export const removeCandidate = async (req, res) => {
       });
     }
 
-    const filtered = election.candidates.filter(
-      (candidate) => candidate !== candidateName,
-    );
-
-    if (filtered.length < 2) {
+    // Election must always have at least 2 candidates
+    if (election.candidates.length <= 2) {
       return res.status(400).json({
         success: false,
         message: "Election must have at least 2 candidates",
       });
     }
 
-    election.candidates = filtered;
+    // Find candidate
+    const candidate = election.candidates.id(candidateId);
+
+    if (!candidate) {
+      return res.status(404).json({
+        success: false,
+        message: "Candidate not found",
+      });
+    }
+
+    // Store Cloudinary public ID before removing candidate
+    const imagePublicId = candidate.imagePublicId;
+
+    // Remove candidate from election
+    election.candidates.pull(candidateId);
 
     await election.save();
+
+    // Delete candidate image only after MongoDB update succeeds
+    if (imagePublicId) {
+      try {
+        await deleteCloudinaryImage(imagePublicId);
+      } catch (error) {
+        console.error("CANDIDATE IMAGE DELETE ERROR:", error);
+      }
+    }
 
     return res.status(200).json({
       success: true,
       message: "Candidate removed successfully",
-
       data: election,
     });
   } catch (error) {
@@ -507,6 +614,112 @@ export const removeCandidate = async (req, res) => {
 };
 
 // GET ELECTION RESULTS
+// export const getElectionResults = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     // find election
+//     const election = await Election.findById(id);
+
+//     if (!election) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Election not found",
+//       });
+//     }
+
+//     // results only after election ends
+//     const now = new Date();
+
+//     const hasEnded = now > election.endTime;
+
+//     if (!hasEnded) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Election results are not available yet",
+//       });
+//     }
+
+//     // fetch finalized votes
+//     const votes = await Vote.find({
+//       electionId: id,
+//       status: "batched",
+//     });
+
+//     const totalVotes = votes.length;
+
+//     // initialize candidate counts
+//     const counts = {};
+
+//     election.candidates.forEach((candidate) => {
+//       counts[candidate] = 0;
+//     });
+
+//     // aggregate votes
+//     votes.forEach((vote) => {
+//       if (counts[vote.candidate] !== undefined) {
+//         counts[vote.candidate] += 1;
+//       }
+//     });
+
+//     // result array
+//     const results = Object.entries(counts).map(([candidate, votes]) => ({
+//       candidate,
+//       votes,
+//       percentage:
+//         totalVotes > 0 ? Number(((votes / totalVotes) * 100).toFixed(2)) : 0,
+//     }));
+
+//     // determine winner
+//     let winner = null;
+//     let isTie = false;
+
+//     if (totalVotes > 0) {
+//       const highestVoteCount = Math.max(
+//         ...results.map((result) => result.votes),
+//       );
+
+//       // candidates tie check
+//       const topCandidates = results.filter(
+//         (result) => result.votes === highestVoteCount,
+//       );
+
+//       if (topCandidates.length === 1) {
+//         winner = topCandidates[0];
+//       } else {
+//         isTie = true;
+//       }
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+
+//       data: {
+//         electionId: election._id,
+
+//         title: election.title,
+
+//         status: "ended",
+
+//         totalVotes,
+
+//         winner: winner ? winner.candidate : null,
+
+//         isTie,
+
+//         results,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("GET RESULTS ERROR:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 export const getElectionResults = async (req, res) => {
   try {
     const { id } = req.params;
@@ -521,90 +734,62 @@ export const getElectionResults = async (req, res) => {
       });
     }
 
-    // results only after election ends
-    const now = new Date();
-
-    const hasEnded = now > election.endTime;
-
-    if (!hasEnded) {
-      return res.status(400).json({
-        success: false,
-        message: "Election results are not available yet",
-      });
-    }
-
-    // fetch finalized votes
+    // get all votes belonging to this election
     const votes = await Vote.find({
       electionId: id,
-      status: "batched",
+    });
+
+    // initialize vote count for every candidate
+    const count = {};
+
+    election.candidates.forEach((candidate) => {
+      counts[candidate.name] = 0;
+    });
+
+    // count votes
+    votes.forEach((vote) => {
+      if (counts[vote.candidate] !== undefined) {
+        counts[vote.candidate]++;
+      }
     });
 
     const totalVotes = votes.length;
 
-    // initialize candidate counts
-    const counts = {};
+    // build result with candidate information
+    const results = election.candidates.map((candidate) => {
+      const candidateVotes = counts[candidate.name];
 
-    election.candidates.forEach((candidate) => {
-      counts[candidate] = 0;
+      const percentage =
+        totalVotes > 0
+          ? Number(((candidateVotes / totalVotes) * 100).toFixed(2))
+          : 0;
+
+      return {
+        candidateId: candidate._id,
+        name: candidate.name,
+        image: candidate.image,
+        votes: candidateVotes,
+        percentage,
+      };
     });
-
-    // aggregate votes
-    votes.forEach((vote) => {
-      if (counts[vote.candidate] !== undefined) {
-        counts[vote.candidate] += 1;
-      }
-    });
-
-    // result array
-    const results = Object.entries(counts).map(([candidate, votes]) => ({
-      candidate,
-      votes,
-      percentage:
-        totalVotes > 0 ? Number(((votes / totalVotes) * 100).toFixed(2)) : 0,
-    }));
-
-    // determine winner
-    let winner = null;
-    let isTie = false;
-
-    if (totalVotes > 0) {
-      const highestVoteCount = Math.max(
-        ...results.map((result) => result.votes),
-      );
-
-      // candidates tie check
-      const topCandidates = results.filter(
-        (result) => result.votes === highestVoteCount,
-      );
-      
-      if (topCandidates.length === 1) {
-        winner = topCandidates[0];
-      } else {
-        isTie = true;
-      }
-    }
 
     return res.status(200).json({
       success: true,
-
       data: {
-        electionId: election._id,
-
-        title: election.title,
-
-        status: "ended",
-
+        election: {
+          id: election._id,
+          title: election.title,
+          description: election.description,
+          status: election.status,
+          startTime: election.startTime,
+          endTime: election.endTime,
+        },
         totalVotes,
-
-        winner: winner ? winner.candidate : null,
-
-        isTie,
-
         results,
       },
     });
   } catch (error) {
-    console.error("GET RESULTS ERROR:", error);
+    console.error("GET ELECTION RESULTS ERROR:", error);
 
     return res.status(500).json({
       success: false,

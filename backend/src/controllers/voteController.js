@@ -95,12 +95,18 @@ export const submitVote = async (req, res) => {
     }
 
     // candidate validation
-    if (!election.candidates.includes(candidate)) {
+    const selectedCandidate = election.candidates.find(
+      (item) => item.name.toLowerCase() === candidate.trim().toLowerCase(),
+    );
+
+    if (!selectedCandidate) {
       return res.status(400).json({
         success: false,
         message: "Invalid candidate selected",
       });
     }
+
+    const candidateName = selectedCandidate.name;
 
     // signature Freshness check
     const currentTimestamp = Date.now();
@@ -118,8 +124,8 @@ export const submitVote = async (req, res) => {
     const message = `
 Blockchain Voting System
 
-Election: ${electionId}
-Candidate: ${candidate}
+Election: ${election.title}
+Candidate: ${candidateName}
 
 Vote Hash: ${voteHash}
 
@@ -175,7 +181,7 @@ Timestamp: ${timestamp}
     try {
       const vote = await Vote.create({
         electionId,
-        candidate,
+        candidate: candidateName,
         voteHash,
         nullifier,
         userId,

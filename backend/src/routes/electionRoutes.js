@@ -14,6 +14,7 @@ import {
 } from "../controllers/electionController.js";
 
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -28,17 +29,29 @@ router.get("/:id/results", getElectionResults);
 // ADMIN
 
 // create election
-router.post("/", protect, adminOnly, createElection);
+router.post(
+  "/",
+  protect,
+  adminOnly,
+  upload.array("candidateImages", 20),
+  createElection,
+);
 
 // get all elections
 router.get("/admin/all", protect, adminOnly, getAllElections);
 
 // add candidate
-router.post("/:id/candidates", protect, adminOnly, addCandidate);
+router.post(
+  "/:id/candidates",
+  protect,
+  adminOnly,
+  upload.single("candidateImage", 20),
+  addCandidate,
+);
 
 // remove candidate
 router.delete(
-  "/:id/candidates/:candidateName",
+  "/:id/candidates/:candidateId",
   protect,
   adminOnly,
   removeCandidate,
@@ -49,8 +62,6 @@ router.put("/:id", protect, adminOnly, updateElection);
 
 // delete election
 router.delete("/:id", protect, adminOnly, deleteElection);
-
-
 
 // election
 router.get("/", getPublicElections);
