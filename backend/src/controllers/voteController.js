@@ -274,3 +274,48 @@ export const getMyVotes = async (req, res) => {
     });
   }
 };
+
+// CHECK IF USER HAS VOTED IN SPECIFIC ELECTION
+export const checkVoteStatus = async (req, res) => {
+  try {
+    const { electionId } = req.params;
+
+    if (!electionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Election ID is required",
+      });
+    }
+
+    const vote = await Vote.findOne({
+      userId: req.user.id,
+      electionId,
+    });
+
+    if (!vote) {
+      return res.status(200).json({
+        success: true,
+        hasVoted: false,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      hasVoted: true,
+      vote: {
+        id: vote._id,
+        voteHash: vote.voteHash,
+        walletAddress: vote.walletAddress,
+        batchId: vote.batchId,
+        status: vote.status,
+        createdAt: vote.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("CHECK VOTE ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

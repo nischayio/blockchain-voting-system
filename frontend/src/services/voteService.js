@@ -25,7 +25,13 @@ export const submitVote = async ({
 
 // get votes
 export const getMyVotes = async (page = 1, limit = 10) => {
-  const res = await API.get(`/v1/votes/my-votes?page=${page}&limit=${limit}`);
+  const res = await API.get(`/v1/votes/my-votes?page=${page}&limit=${limit}&_t=${Date.now()}`);
 
+  return res.data;
+};
+
+// check vote for specific election
+export const checkElectionVote = async (electionId) => {
+  const res = await API.get(`/v1/votes/check/${electionId}`);
   return res.data;
 };
