@@ -32,8 +32,46 @@ const ResultsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Loading results...
+      <div className="min-h-screen px-6 py-14 max-w-5xl mx-auto animate-pulse">
+        <div className="w-40 h-6 bg-white/10 rounded-md mb-10"></div>
+        
+        <div className="mb-10 flex flex-col items-center">
+          <div className="w-64 h-10 bg-white/10 rounded-lg mb-4"></div>
+          <div className="w-32 h-4 bg-white/10 rounded-md"></div>
+        </div>
+
+        {/* Winner card skeleton */}
+        <div className="rounded-[32px] border border-white/5 bg-white/5 p-8 flex flex-col items-center mb-10">
+          <div className="w-24 h-6 bg-white/10 rounded-md mb-4"></div>
+          <div className="w-24 h-24 rounded-full bg-white/10 mb-4"></div>
+          <div className="w-48 h-10 bg-white/10 rounded-lg mb-4"></div>
+          <div className="w-32 h-4 bg-white/10 rounded-md"></div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          {/* Candidates skeleton */}
+          <div className="space-y-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-3xl border border-white/5 bg-white/5 p-6 flex gap-6 items-center">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 shrink-0"></div>
+                <div className="flex-1">
+                  <div className="flex justify-between mb-3">
+                    <div className="w-32 h-5 bg-white/10 rounded-md"></div>
+                    <div className="w-16 h-5 bg-white/10 rounded-md"></div>
+                  </div>
+                  <div className="w-full h-4 rounded-full bg-white/10"></div>
+                  <div className="w-12 h-4 bg-white/10 rounded-md ml-auto mt-2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pie chart skeleton */}
+          <div className="rounded-3xl border border-white/5 bg-white/5 p-8 flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-48 h-6 bg-white/10 rounded-md mb-6"></div>
+            <div className="w-[220px] h-[220px] rounded-full border-[40px] border-white/5"></div>
+          </div>
+        </div>
       </div>
     );
   }
