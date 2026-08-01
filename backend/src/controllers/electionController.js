@@ -283,14 +283,90 @@ export const updateElection = async (req, res) => {
       });
     }
 
-    // Only upcoming elections can be edited
-    if (election.status !== "upcoming") {
+    const now = new Date();
+
+    // Determine current election state from timestamps
+    const isUpcoming = now < election.startTime;
+
+    const isActive = now >= election.startTime && now <= election.endTime;
+
+    const isEnded = now > election.endTime;
+
+    // Ended elections cannot be modified
+    if (isEnded) {
       return res.status(400).json({
         success: false,
-        message: "Only upcoming elections can be updated",
+        message: "Ended elections cannot be updated",
       });
     }
 
+    // Active elections: only endTime can be extended
+    if (isActive) {
+      // Prevent updating any other field
+      if (
+        title !== undefined ||
+        description !== undefined ||
+        startTime !== undefined
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Only the election end time can be updated after voting has started",
+        });
+      }
+
+      if (endTime === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: "End time is required",
+        });
+      }
+
+      const newEndTime = new Date(endTime);
+
+      if (Number.isNaN(newEndTime.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid end time",
+        });
+      }
+
+      // New end time must be in the future
+      if (newEndTime <= now) {
+        return res.status(400).json({
+          success: false,
+          message: "End time must be in the future",
+        });
+      }
+
+      // Only allow extending the election
+      if (newEndTime <= election.endTime) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "New end time must be later than the current election end time",
+        });
+      }
+
+      election.endTime = newEndTime;
+
+      await election.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Election end time updated successfully",
+        data: election,
+      });
+    }
+
+    // Safety check
+    if (!isUpcoming) {
+      return res.status(400).json({
+        success: false,
+        message: "Only upcoming elections can be fully updated",
+      });
+    }
+    
     // Update title
     if (title !== undefined) {
       const normalizedTitle = title.trim();
@@ -341,12 +417,12 @@ export const updateElection = async (req, res) => {
       });
     }
 
+    election.title = election.title.trim();
+    election.description = election.description.trim();
     election.startTime = newStartTime;
     election.endTime = newEndTime;
 
     // Recalculate status
-    const now = new Date();
-
     if (now < newStartTime) {
       election.status = "upcoming";
     } else if (now <= newEndTime) {

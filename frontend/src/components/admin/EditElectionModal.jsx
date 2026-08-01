@@ -58,7 +58,8 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
   }, [openPicker]);
 
   const isEditable = election?.status === "upcoming";
-  const isDateEditable = election?.status === "upcoming" || election?.status === "active";
+  const isStartTimeEditable = election?.status === "upcoming";
+  const isEndTimeEditable = election?.status === "upcoming" || election?.status === "active";
 
   // form prefill
   useEffect(() => {
@@ -126,24 +127,29 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
       );
 
       // add candidates
-      for (const candidate of addedCandidates) {
-        const formData = new FormData();
-        formData.append("name", candidate.name.trim());
-        formData.append("candidateImage", candidate.imageFile);
-        await addCandidate(election._id, formData);
+      if (isEditable) {
+        for (const candidate of addedCandidates) {
+          const formData = new FormData();
+          formData.append("name", candidate.name.trim());
+          formData.append("candidateImage", candidate.imageFile);
+          await addCandidate(election._id, formData);
+        }
+
+        // remove candidates
+        for (const candidate of removedCandidates) {
+          await removeCandidate(election._id, candidate._id);
+        }
       }
 
-      // remove candidates
-      for (const candidate of removedCandidates) {
-        await removeCandidate(election._id, candidate._id);
+      const payload = {};
+      if (isEditable) {
+        payload.title = title;
+        payload.description = description;
+        payload.startTime = new Date(startTime).toISOString();
       }
+      payload.endTime = new Date(endTime).toISOString();
 
-      await updateElection(election._id, {
-        title,
-        description,
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
-      });
+      await updateElection(election._id, payload);
 
       onUpdated();
       onClose();
@@ -289,14 +295,14 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
                   ref={startTimeRef}
                   type="datetime-local"
                   value={startTime}
-                  disabled={!isDateEditable}
+                  disabled={!isStartTimeEditable}
                   onChange={(e) => setStartTime(e.target.value)}
                   className="w-full px-5 py-4 pr-14 rounded-2xl bg-white/5 border border-white/10 outline-none appearance-none [&::-webkit-calendar-picker-indicator]:hidden disabled:opacity-60"
                 />
 
                 <button
                   type="button"
-                  disabled={!isDateEditable}
+                  disabled={!isStartTimeEditable}
                   onClick={() => {
                     const input = startTimeRef.current;
 
@@ -329,14 +335,14 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
                   ref={endTimeRef}
                   type="datetime-local"
                   value={endTime}
-                  disabled={!isDateEditable}
+                  disabled={!isEndTimeEditable}
                   onChange={(e) => setEndTime(e.target.value)}
                   className="w-full px-5 py-4 pr-14 rounded-2xl bg-white/5 border border-white/10 outline-none appearance-none [&::-webkit-calendar-picker-indicator]:hidden disabled:opacity-60"
                 />
 
                 <button
                   type="button"
-                  disabled={!isDateEditable}
+                  disabled={!isEndTimeEditable}
                   onClick={() => {
                     const input = endTimeRef.current;
 
@@ -368,10 +374,10 @@ const EditElectionModal = ({ open, onClose, election, onUpdated }) => {
           <div className="shrink-0 px-8 py-4 border-t border-white/10 bg-[#0d1117]/95">
             <button
               type="submit"
-              disabled={loading || !isDateEditable}
+              disabled={loading || !isEndTimeEditable}
               className="w-full py-4 rounded-2xl bg-white text-black font-semibold disabled:opacity-50"
             >
-              {!isDateEditable
+              {!isEndTimeEditable
                 ? "Election Locked"
                 : loading
                   ? "Updating..."
