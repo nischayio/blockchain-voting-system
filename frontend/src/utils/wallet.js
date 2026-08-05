@@ -28,3 +28,18 @@ export const signMessage = async (message) => {
 
   return signature;
 };
+
+// get connected wallet
+export const getConnectedWallet = async () => {
+  if (!window.ethereum) return null;
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const accounts = await provider.listAccounts();
+    if (accounts.length > 0) {
+      return accounts[0];
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+};

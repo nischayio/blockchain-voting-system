@@ -18,7 +18,7 @@ import {
 
 import Toast from "./Toast";
 import { changePassword, validateWallet, uploadProfilePicture } from "../services/authService";
-import { connectWallet, signMessage } from "../utils/wallet";
+import { connectWallet, signMessage, getConnectedWallet } from "../utils/wallet";
 import { useVoteStore } from "../store/useVoteStore";
 
 const UserModal = ({ open, onClose, logout, anchorRef }) => {
@@ -32,6 +32,37 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const [loading, setLoading] = useState(false);
+
+  const [activeWallet, setActiveWallet] = useState(null);
+
+  useEffect(() => {
+    const checkWallet = async () => {
+      const address = await getConnectedWallet();
+      setActiveWallet(address ? address.toLowerCase() : null);
+    };
+
+    if (open) {
+      checkWallet();
+    }
+
+    const handleAccountsChanged = (accounts) => {
+      if (accounts.length > 0) {
+        setActiveWallet(accounts[0].toLowerCase());
+      } else {
+        setActiveWallet(null);
+      }
+    };
+
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", handleAccountsChanged);
+    }
+
+    return () => {
+      if (window.ethereum && window.ethereum.removeListener) {
+        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      }
+    };
+  }, [open]);
 
   const [showCurrent, setShowCurrent] = useState(false);
 
@@ -173,29 +204,50 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
         return;
       }
 
-      const user = JSON.parse(localStorage.getItem("user"));
+      const normalizedAddress = address.toLowerCase();
 
-      const message = `Link wallet to voting account: ${user.id}`;
+      // User wallet link check
+      if (user?.walletAddress) {
+        if (user.walletAddress !== normalizedAddress) {
+          showToast(
+            `Please connect with your linked wallet: ${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`,
+            "error"
+          );
+          return;
+        }
+
+        // Linked wallet vs Current wallet validation
+        setActiveWallet(normalizedAddress);
+        setWallet(normalizedAddress);
+        showToast("Wallet connected!", "success");
+        return;
+      }
+
+      // Fresh account wallet link
+      const authUser = JSON.parse(localStorage.getItem("user"));
+      const message = `Link wallet to voting account: ${authUser.id}`;
 
       const signature = await signMessage(message);
 
-      await validateWallet(address, signature);
+      await validateWallet(normalizedAddress, signature);
 
-      setWallet(address);
+      setWallet(normalizedAddress);
       const updatedUser = {
-        ...user,
-        walletAddress: address.toLowerCase(),
+        ...authUser,
+        walletAddress: normalizedAddress,
       };
 
       updateUser(updatedUser);
 
-      showToast("Wallet connected!", "success");
+      showToast("Wallet linked successfully!", "success");
     } catch (error) {
       console.error(error);
-
-      const msg = error?.response?.data?.message;
-
-      showToast(msg || "Failed to connect wallet", "error");
+      const msg = error?.response?.data?.message || error?.message || "Failed to connect wallet";
+      if (error?.code === 4001 || msg.includes("User denied message signature")) {
+        showToast("Signature request cancelled", "error");
+      } else {
+        showToast(msg, "error");
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -416,8 +468,8 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                   <InfoRow
                     icon={<Wallet className="h-4 w-4" />}
                     label="Wallet"
-                    value={user?.walletAddress || "Not connected"}
-                    mono
+                    value={!user?.walletAddress ? "Link a wallet" : user.walletAddress}
+                    mono={!!user?.walletAddress}
                     action={
                       !user?.walletAddress ? (
                         <button
@@ -428,9 +480,25 @@ const UserModal = ({ open, onClose, logout, anchorRef }) => {
                           {isConnecting && (
                             <Loader2 className="w-3 h-3 animate-spin" />
                           )}
+                          {isConnecting ? "Linking" : "Link"}
+                        </button>
+                      ) : (user.walletAddress === activeWallet && !isConnecting) ? (
+                        <div className="px-3 py-1.5 text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20 rounded-lg flex items-center gap-1.5">
+                          <Check className="w-3 h-3" />
+                          Connected
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleConnectWallet}
+                          disabled={isConnecting}
+                          className="px-3 py-1.5 text-xs font-medium bg-white text-slate-950 rounded-lg hover:bg-slate-200 transition disabled:opacity-50 flex items-center gap-1.5"
+                        >
+                          {isConnecting && (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          )}
                           {isConnecting ? "Connecting" : "Connect"}
                         </button>
-                      ) : null
+                      )
                     }
                   />
                 </div>

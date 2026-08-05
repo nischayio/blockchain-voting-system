@@ -181,7 +181,7 @@ const VotePage = () => {
 
   const initiateVote = (candidateName) => {
     if (!wallet) {
-      handleConnectWallet();
+      showToast("Please connect wallet first", "error");
       return;
     }
     setCandidateToVote(candidateName);
