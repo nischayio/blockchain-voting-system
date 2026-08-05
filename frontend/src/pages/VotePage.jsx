@@ -14,7 +14,7 @@ import { useVoteStore } from "../store/useVoteStore";
 
 // utils
 import { generateVoteHash } from "../utils/hash";
-import { connectWallet, signMessage } from "../utils/wallet";
+import { connectWallet, signMessage, getConnectedWallet } from "../utils/wallet";
 import { generateNullifier } from "../utils/nullifier";
 
 // components
@@ -179,11 +179,18 @@ const VotePage = () => {
     }
   };
 
-  const initiateVote = (candidateName) => {
+  const initiateVote = async (candidateName) => {
     if (!wallet) {
       showToast("Please connect wallet first", "error");
       return;
     }
+
+    const connectedWallet = await getConnectedWallet();
+    if (!connectedWallet || connectedWallet.toLowerCase() !== wallet.toLowerCase()) {
+      showToast("Please connect wallet first", "error");
+      return;
+    }
+
     setCandidateToVote(candidateName);
     setConfirmModalOpen(true);
   };
