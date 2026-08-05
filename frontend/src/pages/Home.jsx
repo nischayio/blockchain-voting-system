@@ -102,23 +102,18 @@ const Home = () => {
           {showLiquidEther && (
             <LiquidEther
               colors={["#5227FF", "#FF9FFC", "#B497CF"]}
-              mouseForce={14}
-              cursorSize={85}
-              isViscous
-              viscous={26}
-              iterationsViscous={26}
-              iterationsPoisson={26}
-              resolution={0.45}
+              mouseForce={12}
+              cursorSize={75}
+              isViscous={false}
+              iterationsPoisson={12}
+              resolution={0.25}
               isBounce={false}
               autoDemo
               autoSpeed={0.4}
-              autoIntensity={1.8}
+              autoIntensity={1.2}
               takeoverDuration={0.22}
               autoResumeDelay={2500}
               autoRampDuration={0.5}
-              color0="#5227FF"
-              color1="#FF9FFC"
-              color2="#B497CF"
             />
           )}
         </div>
