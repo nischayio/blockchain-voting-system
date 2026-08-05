@@ -26,7 +26,7 @@ export const loginAdmin = async (formData) => {
 
 // validate wallet
 export const validateWallet = async (walletAddress, signature) => {
-  const res = await API.post("/auth/validate-wallet", {
+  const res = await API.post("/auth/user/validate-wallet", {
     walletAddress,
     signature,
   });
